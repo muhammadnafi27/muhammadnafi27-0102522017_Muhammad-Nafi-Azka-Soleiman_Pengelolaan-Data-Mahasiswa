@@ -215,6 +215,8 @@ Setelah penghapusan dikonfirmasi, data dihapus dari database dan berkas foto ter
 
 Tabel mahasiswa mendukung pencarian teks bebas berdasarkan NIM atau nama secara real-time, serta pemfilteran berdasarkan program studi melalui dropdown. Semua operasi pencarian dan filter diproses di sisi server melalui parameter query string, sehingga hasil yang ditampilkan selalu akurat terhadap data aktual.
 
+![Page Filter Search](./screenshots/Page%20Filter%20Search.png)
+
 ### Pagination Data
 
 Data mahasiswa dibagi ke dalam halaman-halaman dengan kapasitas 10 data per halaman. Navigasi halaman dilengkapi dengan tombol nomor halaman, tombol sebelumnya, dan tombol berikutnya. Seluruh metadata pagination (halaman saat ini, total halaman, total data) dikelola oleh server dan dikembalikan bersama respons data.
