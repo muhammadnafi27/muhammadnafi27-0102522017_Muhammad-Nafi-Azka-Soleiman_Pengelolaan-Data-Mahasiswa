@@ -27,6 +27,10 @@ export const getMahasiswas = async (req: Request, res: Response) => {
     const [countRows] = await pool.query(countQuery, params);
     const total = (countRows as any)[0].total;
 
+    const angkatanQuery = `SELECT COUNT(DISTINCT m.angkatan) as totalAngkatan ${baseQuery}`;
+    const [angkatanRows] = await pool.query(angkatanQuery, params);
+    const totalAngkatan = (angkatanRows as any)[0].totalAngkatan;
+
     const dataQuery = `
       SELECT m.id, m.nim, m.nama, m.prodi_id, p.nama_prodi, m.angkatan, m.foto, m.created_at, m.updated_at
       ${baseQuery}
@@ -37,13 +41,14 @@ export const getMahasiswas = async (req: Request, res: Response) => {
 
     res.json({
       message: "Data mahasiswa berhasil diambil",
-      data: rows,
-      pagination: {
-        total,
+      meta: {
         page,
         limit,
-        totalPages: Math.ceil(total / limit)
-      }
+        total,
+        totalPage: Math.ceil(total / limit) || 1,
+        totalAngkatan
+      },
+      data: rows
     });
   } catch (error) {
     console.error(error);

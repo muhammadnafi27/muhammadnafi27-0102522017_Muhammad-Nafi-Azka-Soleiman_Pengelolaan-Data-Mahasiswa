@@ -37,12 +37,12 @@ export default function MahasiswaTable({
   }
 
   return (
-    <div className="card" style={{ padding: '1.75rem' }}>
+    <div className="card">
       <div className="table-header" style={{ marginBottom: '1.25rem' }}>
         <h2 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 700 }}>Daftar Mahasiswa</h2>
         <span className="badge-total">Total: {totalItems} Mahasiswa</span>
       </div>
-      <div className="table-wrapper" style={{ border: 'none', boxShadow: 'none', borderRadius: '10px', overflow: 'hidden' }}>
+      <div className="table-wrapper">
         <table>
           <thead>
             <tr>
@@ -63,38 +63,74 @@ export default function MahasiswaTable({
                   <td>
                     {mhs.foto ? (
                       <img 
-                        src={`http://localhost:3000/uploads/${mhs.foto}`} 
+                        src={`http://localhost:3000/uploads/mahasiswa/${mhs.foto}`} 
                         alt={mhs.nama} 
                         style={{ 
-                          width: '40px', 
-                          height: '40px', 
-                          borderRadius: '50%', 
+                          width: '56px', 
+                          height: '56px', 
+                          borderRadius: '14px', 
                           objectFit: 'cover',
-                          border: '1px solid var(--border)' 
+                          border: '2px solid rgba(59, 130, 246, 0.4)',
+                          boxShadow: '0 4px 14px rgba(0, 0, 0, 0.4), 0 0 10px rgba(59, 130, 246, 0.2)'
                         }} 
                       />
                     ) : (
                       <div 
                         style={{ 
-                          width: '40px', 
-                          height: '40px', 
-                          borderRadius: '50%', 
-                          backgroundColor: '#eff6ff', 
+                          width: '56px', 
+                          height: '56px', 
+                          borderRadius: '14px', 
+                          backgroundColor: 'rgba(15, 23, 42, 0.6)', 
                           display: 'flex', 
                           alignItems: 'center', 
                           justifyContent: 'center',
-                          color: 'var(--primary)',
-                          border: '1px solid #dbeafe'
+                          color: '#60a5fa',
+                          border: '1px dashed rgba(59, 130, 246, 0.4)',
+                          boxShadow: 'inset 0 2px 4px rgba(0, 0, 0, 0.2)'
                         }}
                       >
-                        <User size={20} />
+                        <User size={26} />
                       </div>
                     )}
                   </td>
-                  <td><strong>{mhs.nim}</strong></td>
-                  <td>{mhs.nama}</td>
-                  <td>{mhs.nama_prodi || 'Tidak Diketahui'}</td>
-                  <td>{mhs.angkatan}</td>
+                  <td>
+                    <span style={{ fontWeight: 600, color: '#ffffff' }}>{mhs.nim}</span>
+                  </td>
+                  <td>
+                    <span style={{ fontWeight: 600, color: '#f8fafc' }}>{mhs.nama}</span>
+                  </td>
+                  <td>
+                    <div style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.45rem',
+                      padding: '0.45rem 0.95rem',
+                      background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.22) 0%, rgba(14, 165, 233, 0.15) 100%)',
+                      color: '#60a5fa',
+                      borderRadius: '9999px',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      border: '1px solid rgba(59, 130, 246, 0.35)',
+                      boxShadow: '0 2px 8px rgba(59, 130, 246, 0.15)',
+                      backdropFilter: 'blur(8px)'
+                    }}>
+                      <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#60a5fa', boxShadow: '0 0 8px #60a5fa' }} />
+                      {mhs.nama_prodi || 'Tidak Diketahui'}
+                    </div>
+                  </td>
+                  <td>
+                    <span style={{
+                      padding: '0.4rem 0.8rem',
+                      backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                      color: '#34d399',
+                      borderRadius: '8px',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      border: '1px solid rgba(16, 185, 129, 0.2)'
+                    }}>
+                      {mhs.angkatan}
+                    </span>
+                  </td>
                   <td>
                     <button
                       className="btn-icon-edit"

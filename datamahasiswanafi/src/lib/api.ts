@@ -18,17 +18,18 @@ export interface Mahasiswa {
   updated_at?: string;
 }
 
-export interface PaginationInfo {
-  total: number;
+export interface PaginationMeta {
   page: number;
   limit: number;
-  totalPages: number;
+  total: number;
+  totalPage: number;
+  totalAngkatan?: number;
 }
 
-export interface GetMahasiswaResponse {
+export interface MahasiswaResponse {
   message: string;
+  meta: PaginationMeta;
   data: Mahasiswa[];
-  pagination: PaginationInfo;
 }
 
 async function handleResponse<T>(response: Response): Promise<T> {
@@ -49,13 +50,14 @@ export const getMahasiswa = async (
   prodiId = '',
   page = 1,
   limit = 5
-): Promise<GetMahasiswaResponse> => {
+): Promise<MahasiswaResponse> => {
   const queryParams = new URLSearchParams({
     search,
     prodi_id: prodiId,
     page: String(page),
     limit: String(limit)
   });
+  
   const res = await fetch(`${API_URL}/mahasiswa?${queryParams.toString()}`, { cache: 'no-store' });
   const data = await res.json().catch(() => null);
   if (!res.ok) {
@@ -67,7 +69,7 @@ export const getMahasiswa = async (
 export const createMahasiswa = async (formData: FormData): Promise<Mahasiswa> => {
   const res = await fetch(`${API_URL}/mahasiswa`, {
     method: 'POST',
-    body: formData,
+    body: formData, // Jangan set Content-Type secara manual agar browser menentukan boundary secara otomatis
   });
   return handleResponse<Mahasiswa>(res);
 };

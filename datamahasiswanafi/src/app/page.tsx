@@ -24,8 +24,9 @@ export default function Home() {
   const [search, setSearch] = useState('');
   const [filterProdi, setFilterProdi] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [totalPage, setTotalPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   // Stats
   const [jumlahProdi, setJumlahProdi] = useState(0);
@@ -54,12 +55,11 @@ export default function Home() {
     try {
       const response = await getMahasiswa(search, filterProdi, currentPage, 5);
       setMahasiswas(response.data);
-      setTotalPages(response.pagination.totalPages);
-      setTotalItems(response.pagination.total);
-      
-      // Calculate active years/angkatan count from response
-      const angkatans = new Set(response.data.map((m) => m.angkatan));
-      setJumlahAngkatan(angkatans.size);
+      setTotalPage(response.meta.totalPage);
+      setTotalItems(response.meta.total);
+      if (response.meta.totalAngkatan !== undefined) {
+        setJumlahAngkatan(response.meta.totalAngkatan);
+      }
     } catch (error: any) {
       addNotification(error.message || 'Gagal memuat data mahasiswa', 'error');
     }
@@ -73,10 +73,21 @@ export default function Home() {
     fetchMahasiswaData();
   }, [fetchMahasiswaData]);
 
-  // Reset page to 1 when filters or search term changes
   useEffect(() => {
     setCurrentPage(1);
   }, [search, filterProdi]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 30) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleCreateOrUpdate = async (formData: FormData) => {
     try {
@@ -117,15 +128,25 @@ export default function Home() {
         />
       ))}
 
-      <header className="header" style={{ padding: '2.5rem 2rem 1rem 2rem', maxWidth: '1400px', margin: '0 auto' }}>
-        <div className="brand">
-          <GraduationCap size={40} className="brand-icon" />
-          <h1>Pengelolaan Data Mahasiswa UAI</h1>
-        </div>
-        <p className="subtitle">
-          Sistem akademik satu halaman terpadu dengan analisis database MySQL.
-        </p>
-      </header>
+      <div className={`header-wrapper ${isScrolled ? 'scrolled' : ''}`}>
+        <header className="dynamic-island">
+          <div className="brand">
+            <div className="brand-icon-box">
+              <GraduationCap size={42} className="brand-icon" />
+            </div>
+            <div className="brand-text">
+              <h1>Pengelolaan Data Mahasiswa UAI</h1>
+              <p className="subtitle">
+                Sistem akademik satu halaman terpadu dengan analisis database MySQL.
+              </p>
+            </div>
+          </div>
+          <div className="island-badge">
+            <GraduationCap size={16} />
+            <span>{totalItems} Mahasiswa</span>
+          </div>
+        </header>
+      </div>
 
       <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem 2.5rem 2rem' }}>
         <DashboardCard 
@@ -135,59 +156,22 @@ export default function Home() {
         />
         
         {/* Search and Filter Controls */}
-        <div 
-          style={{ 
-            display: 'flex', 
-            gap: '1.25rem', 
-            marginBottom: '2rem', 
-            flexWrap: 'wrap', 
-            alignItems: 'center',
-            backgroundColor: 'var(--surface)',
-            padding: '1.25rem',
-            borderRadius: 'var(--radius)',
-            border: '1px solid var(--border)',
-            boxShadow: 'var(--shadow-sm)'
-          }}
-        >
-          <div style={{ flex: 1, minWidth: '250px', position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <Search size={18} style={{ position: 'absolute', left: '1.1rem', color: 'var(--text-muted)' }} />
+        <div className="search-filter-container">
+          <div className="input-wrapper" style={{ flex: 1, minWidth: '250px' }}>
+            <Search size={18} className="input-icon" />
             <input
               type="text"
               placeholder="Cari NIM atau Nama..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.85rem 1rem 0.85rem 2.85rem',
-                border: '1.5px solid var(--border)',
-                borderRadius: '12px',
-                fontSize: '0.95rem',
-                color: 'var(--text-dark)',
-                backgroundColor: '#f8fafc',
-                outline: 'none',
-                transition: 'var(--transition)'
-              }}
-              className="search-input"
             />
           </div>
 
-          <div style={{ minWidth: '220px', position: 'relative', display: 'flex', alignItems: 'center' }}>
-            <Filter size={18} style={{ position: 'absolute', left: '1.1rem', color: 'var(--text-muted)' }} />
+          <div className="input-wrapper" style={{ minWidth: '220px' }}>
+            <Filter size={18} className="input-icon" />
             <select
               value={filterProdi}
               onChange={(e) => setFilterProdi(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '0.85rem 1rem 0.85rem 2.85rem',
-                border: '1.5px solid var(--border)',
-                borderRadius: '12px',
-                fontSize: '0.95rem',
-                color: 'var(--text-dark)',
-                backgroundColor: '#f8fafc',
-                outline: 'none',
-                appearance: 'none',
-                cursor: 'pointer'
-              }}
             >
               <option value="">Semua Program Studi</option>
               {prodis.map((p) => (
@@ -214,7 +198,7 @@ export default function Home() {
               onEdit={setEditingMahasiswa}
               onDelete={handleDelete}
               currentPage={currentPage}
-              totalPages={totalPages}
+              totalPages={totalPage}
               totalItems={totalItems}
               onPageChange={setCurrentPage}
             />

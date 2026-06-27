@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mahasiswa, Prodi } from '../lib/api';
-import { IdCard, User, BookOpen, Calendar, Save, RotateCcw, Upload, Image as ImageIcon } from 'lucide-react';
+import { IdCard, User, BookOpen, Calendar, Save, RotateCcw, UploadCloud, Image as ImageIcon } from 'lucide-react';
 
 interface MahasiswaFormProps {
   selectedMahasiswa: Mahasiswa | null;
@@ -140,18 +140,6 @@ export default function MahasiswaForm({ selectedMahasiswa, prodis, onSubmit, onC
               onChange={(e) => setProdiId(e.target.value)}
               required
               disabled={loading}
-              style={{
-                width: '100%',
-                padding: '0.85rem 1rem 0.85rem 2.85rem',
-                border: '1.5px solid var(--border)',
-                borderRadius: '12px',
-                fontSize: '0.95rem',
-                color: 'var(--text-dark)',
-                backgroundColor: '#f8fafc',
-                outline: 'none',
-                appearance: 'none',
-                cursor: 'pointer'
-              }}
             >
               <option value="">Pilih Program Studi...</option>
               {prodis.map((p) => (
@@ -181,53 +169,88 @@ export default function MahasiswaForm({ selectedMahasiswa, prodis, onSubmit, onC
         <div className="form-group">
           <label>Foto Mahasiswa</label>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-            <div className="input-wrapper">
-              <Upload size={18} className="input-icon" />
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                ref={fileInputRef}
-                disabled={loading}
-                style={{
-                  width: '100%',
-                  padding: '0.85rem 1rem 0.85rem 2.85rem',
-                  border: '1.5px solid var(--border)',
-                  borderRadius: '12px',
-                  fontSize: '0.95rem',
-                  color: 'var(--text-muted)',
-                  backgroundColor: '#f8fafc',
-                  outline: 'none',
-                  cursor: 'pointer'
-                }}
-              />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              ref={fileInputRef}
+              disabled={loading}
+              style={{ display: 'none' }}
+            />
+            
+            <div 
+              onClick={() => fileInputRef.current?.click()}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '1.25rem 1rem',
+                backgroundColor: 'rgba(15, 23, 42, 0.4)',
+                border: '2px dashed rgba(59, 130, 246, 0.4)',
+                borderRadius: '16px',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                textAlign: 'center',
+                gap: '0.35rem'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = '#60a5fa';
+                e.currentTarget.style.backgroundColor = 'rgba(37, 99, 235, 0.1)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = 'rgba(59, 130, 246, 0.4)';
+                e.currentTarget.style.backgroundColor = 'rgba(15, 23, 42, 0.4)';
+              }}
+            >
+              <div style={{ 
+                padding: '0.65rem', 
+                backgroundColor: 'rgba(59, 130, 246, 0.15)', 
+                borderRadius: '50%',
+                color: '#60a5fa',
+                marginBottom: '0.15rem'
+              }}>
+                <UploadCloud size={24} />
+              </div>
+              <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#f8fafc' }}>
+                Klik untuk unggah foto
+              </span>
+              <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                Format JPG, PNG, WEBP (Maks 2MB)
+              </span>
             </div>
+
             {fotoPreview && (
               <div 
                 style={{ 
                   display: 'flex', 
                   alignItems: 'center', 
-                  gap: '1rem', 
-                  padding: '0.75rem', 
-                  backgroundColor: '#f8fafc', 
-                  borderRadius: '12px',
-                  border: '1px dashed var(--border)'
+                  gap: '0.85rem', 
+                  padding: '0.65rem 0.85rem', 
+                  backgroundColor: 'rgba(15, 23, 42, 0.6)', 
+                  borderRadius: '14px',
+                  border: '1px solid rgba(59, 130, 246, 0.3)'
                 }}
               >
                 <img 
                   src={fotoPreview} 
                   alt="Preview Foto" 
                   style={{ 
-                    width: '60px', 
-                    height: '60px', 
+                    width: '44px', 
+                    height: '44px', 
                     objectFit: 'cover', 
-                    borderRadius: '8px',
-                    border: '1px solid var(--border)' 
+                    borderRadius: '10px',
+                    border: '1px solid rgba(255, 255, 255, 0.2)' 
                   }} 
                 />
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
-                  {foto ? foto.name : 'Foto saat ini'}
-                </span>
+                <div style={{ display: 'flex', flexDirection: 'column', flex: 1, overflow: 'hidden' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#ffffff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {foto ? foto.name : 'Foto saat ini'}
+                  </span>
+                  <span style={{ fontSize: '0.75rem', color: '#34d399' }}>
+                    ✓ Berhasil dimuat
+                  </span>
+                </div>
               </div>
             )}
           </div>
