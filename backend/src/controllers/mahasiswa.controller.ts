@@ -60,21 +60,25 @@ export const createMahasiswa = async (req: any, res: Response): Promise<any> => 
   const { nim, nama, prodi_id, angkatan } = req.body;
   const foto = req.file ? req.file.filename : null;
 
-  if (!nim || !nama || !prodi_id || !angkatan || isNaN(Number(angkatan))) {
+  const nimClean = nim ? String(nim).trim() : '';
+  const namaClean = nama ? String(nama).trim() : '';
+
+  if (!nimClean || !namaClean || !prodi_id || !angkatan || isNaN(Number(angkatan))) {
     if (req.file) fs.unlinkSync(req.file.path);
     return res.status(400).json({ message: "Semua field (nim, nama, prodi_id, angkatan) wajib diisi dengan format yang benar" });
   }
 
   try {
-    const [existing] = await pool.query('SELECT * FROM mahasiswa WHERE nim = ?', [nim]);
+    // Cek persis duplikasi NIM
+    const [existing] = await pool.query('SELECT * FROM mahasiswa WHERE nim = ?', [nimClean]);
     if ((existing as any[]).length > 0) {
       if (req.file) fs.unlinkSync(req.file.path);
-      return res.status(400).json({ message: "NIM tidak boleh duplikat" });
+      return res.status(400).json({ message: "NIM tidak boleh duplikat (NIM ini sudah terdaftar)" });
     }
 
     const [result] = await pool.query(
       'INSERT INTO mahasiswa (nim, nama, prodi_id, angkatan, foto) VALUES (?, ?, ?, ?, ?)',
-      [nim, nama, Number(prodi_id), Number(angkatan), foto]
+      [nimClean, namaClean, Number(prodi_id), Number(angkatan), foto]
     );
 
     const insertId = (result as any).insertId;
@@ -90,19 +94,25 @@ export const createMahasiswa = async (req: any, res: Response): Promise<any> => 
       message: "Data mahasiswa berhasil ditambahkan",
       data: (newData as any[])[0]
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     if (req.file) fs.unlinkSync(req.file.path);
+    if (error.code === 'ER_DUP_ENTRY') {
+      return res.status(400).json({ message: "NIM tidak boleh duplikat (NIM ini sudah terdaftar)" });
+    }
     res.status(500).json({ message: "Terjadi kesalahan pada server" });
   }
 };
 
 export const updateMahasiswa = async (req: any, res: Response): Promise<any> => {
   const { id } = req.params;
-  const { nim, nama, prodi_id, angkatan } = req.body;
+  const { nim, nama, prodi_id, angkatan, removeFoto } = req.body;
   const newFoto = req.file ? req.file.filename : undefined;
 
-  if (!nim || !nama || !prodi_id || !angkatan || isNaN(Number(angkatan))) {
+  const nimClean = nim ? String(nim).trim() : '';
+  const namaClean = nama ? String(nama).trim() : '';
+
+  if (!nimClean || !namaClean || !prodi_id || !angkatan || isNaN(Number(angkatan))) {
     if (req.file) fs.unlinkSync(req.file.path);
     return res.status(400).json({ message: "Semua field (nim, nama, prodi_id, angkatan) wajib diisi dengan format yang benar" });
   }
@@ -114,20 +124,26 @@ export const updateMahasiswa = async (req: any, res: Response): Promise<any> => 
       return res.status(404).json({ message: "Data mahasiswa tidak ditemukan" });
     }
 
-    const [existing] = await pool.query('SELECT * FROM mahasiswa WHERE nim = ? AND id != ?', [nim, id]);
+    const [existing] = await pool.query('SELECT * FROM mahasiswa WHERE nim = ? AND id != ?', [nimClean, id]);
     if ((existing as any[]).length > 0) {
       if (req.file) fs.unlinkSync(req.file.path);
-      return res.status(400).json({ message: "NIM tidak boleh duplikat" });
+      return res.status(400).json({ message: "NIM tidak boleh duplikat (NIM ini sudah digunakan mahasiswa lain)" });
     }
 
     const oldFoto = (current as any[])[0].foto;
     let updateQuery = 'UPDATE mahasiswa SET nim = ?, nama = ?, prodi_id = ?, angkatan = ?';
-    const params: any[] = [nim, nama, Number(prodi_id), Number(angkatan)];
+    const params: any[] = [nimClean, namaClean, Number(prodi_id), Number(angkatan)];
 
     if (newFoto !== undefined) {
       updateQuery += ', foto = ?';
       params.push(newFoto);
 
+      if (oldFoto) {
+        const oldFotoPath = path.join(__dirname, '../../uploads/mahasiswa', oldFoto);
+        if (fs.existsSync(oldFotoPath)) fs.unlinkSync(oldFotoPath);
+      }
+    } else if (removeFoto === 'true') {
+      updateQuery += ', foto = NULL';
       if (oldFoto) {
         const oldFotoPath = path.join(__dirname, '../../uploads/mahasiswa', oldFoto);
         if (fs.existsSync(oldFotoPath)) fs.unlinkSync(oldFotoPath);

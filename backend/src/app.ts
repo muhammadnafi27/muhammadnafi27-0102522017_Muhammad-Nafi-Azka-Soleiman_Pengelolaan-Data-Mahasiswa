@@ -18,7 +18,7 @@ app.use(express.json());
 
 // Serve static uploads
 // Dengan ini, URL foto http://localhost:3000/uploads/mahasiswa/nama-file.jpg bisa diakses
-app.use('/uploads', express.static(path.join(__dirname, '../../uploads')));
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Routes
 app.use('/api/prodi', prodiRoutes);

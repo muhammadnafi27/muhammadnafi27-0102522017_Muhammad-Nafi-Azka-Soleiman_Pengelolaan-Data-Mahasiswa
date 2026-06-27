@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Mahasiswa, Prodi } from '../lib/api';
-import { IdCard, User, BookOpen, Calendar, Save, RotateCcw, UploadCloud, Image as ImageIcon } from 'lucide-react';
+import { IdCard, User, BookOpen, Calendar, Save, RotateCcw, UploadCloud, X } from 'lucide-react';
 
 interface MahasiswaFormProps {
   selectedMahasiswa: Mahasiswa | null;
@@ -16,6 +16,7 @@ export default function MahasiswaForm({ selectedMahasiswa, prodis, onSubmit, onC
   const [angkatan, setAngkatan] = useState(new Date().getFullYear());
   const [foto, setFoto] = useState<File | null>(null);
   const [fotoPreview, setFotoPreview] = useState<string | null>(null);
+  const [removeExistingFoto, setRemoveExistingFoto] = useState(false);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -26,8 +27,9 @@ export default function MahasiswaForm({ selectedMahasiswa, prodis, onSubmit, onC
       setProdiId(String(selectedMahasiswa.prodi_id));
       setAngkatan(selectedMahasiswa.angkatan);
       setFoto(null);
+      setRemoveExistingFoto(false);
       if (selectedMahasiswa.foto) {
-        setFotoPreview(`http://localhost:3000/uploads/${selectedMahasiswa.foto}`);
+        setFotoPreview(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'}/uploads/mahasiswa/${selectedMahasiswa.foto}`);
       } else {
         setFotoPreview(null);
       }
@@ -38,11 +40,22 @@ export default function MahasiswaForm({ selectedMahasiswa, prodis, onSubmit, onC
       setAngkatan(new Date().getFullYear());
       setFoto(null);
       setFotoPreview(null);
+      setRemoveExistingFoto(false);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     }
   }, [selectedMahasiswa]);
+
+  const handleRemoveFoto = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setFoto(null);
+    setFotoPreview(null);
+    setRemoveExistingFoto(true);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -63,6 +76,8 @@ export default function MahasiswaForm({ selectedMahasiswa, prodis, onSubmit, onC
     formData.append('angkatan', String(angkatan));
     if (foto) {
       formData.append('foto', foto);
+    } else if (removeExistingFoto) {
+      formData.append('removeFoto', 'true');
     }
 
     try {
@@ -74,6 +89,7 @@ export default function MahasiswaForm({ selectedMahasiswa, prodis, onSubmit, onC
         setAngkatan(new Date().getFullYear());
         setFoto(null);
         setFotoPreview(null);
+        setRemoveExistingFoto(false);
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
@@ -251,6 +267,35 @@ export default function MahasiswaForm({ selectedMahasiswa, prodis, onSubmit, onC
                     ✓ Berhasil dimuat
                   </span>
                 </div>
+                
+                <button
+                  type="button"
+                  onClick={handleRemoveFoto}
+                  style={{
+                    backgroundColor: 'rgba(239, 68, 68, 0.15)',
+                    border: '1px solid rgba(239, 68, 68, 0.3)',
+                    color: '#f87171',
+                    borderRadius: '10px',
+                    padding: '0.4rem',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.2s ease',
+                    marginLeft: 'auto'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.25)';
+                    e.currentTarget.style.color = '#fca5a5';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.15)';
+                    e.currentTarget.style.color = '#f87171';
+                  }}
+                  title="Hapus foto"
+                >
+                  <X size={18} />
+                </button>
               </div>
             )}
           </div>
