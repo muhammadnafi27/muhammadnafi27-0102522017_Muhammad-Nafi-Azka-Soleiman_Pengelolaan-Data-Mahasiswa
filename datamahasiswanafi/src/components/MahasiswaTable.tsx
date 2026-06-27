@@ -1,27 +1,33 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Mahasiswa } from '../lib/api';
-import { Pencil, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Pencil, Trash2, ChevronLeft, ChevronRight, User } from 'lucide-react';
 
 interface MahasiswaTableProps {
   data: Mahasiswa[];
   onEdit: (mahasiswa: Mahasiswa) => void;
   onDelete: (id: number) => void;
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  onPageChange: (page: number) => void;
 }
 
-export default function MahasiswaTable({ data, onEdit, onDelete }: MahasiswaTableProps) {
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
-
-  const totalPages = Math.ceil(data.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const currentData = data.slice(startIndex, startIndex + itemsPerPage);
+export default function MahasiswaTable({
+  data,
+  onEdit,
+  onDelete,
+  currentPage,
+  totalPages,
+  totalItems,
+  onPageChange
+}: MahasiswaTableProps) {
 
   const handlePrev = () => {
-    if (currentPage > 1) setCurrentPage((prev) => prev - 1);
+    if (currentPage > 1) onPageChange(currentPage - 1);
   };
 
   const handleNext = () => {
-    if (currentPage < totalPages) setCurrentPage((prev) => prev + 1);
+    if (currentPage < totalPages) onPageChange(currentPage + 1);
   };
 
   // Generate page numbers array
@@ -34,13 +40,14 @@ export default function MahasiswaTable({ data, onEdit, onDelete }: MahasiswaTabl
     <div className="card" style={{ padding: '1.75rem' }}>
       <div className="table-header" style={{ marginBottom: '1.25rem' }}>
         <h2 style={{ margin: 0, fontSize: '1.35rem', fontWeight: 700 }}>Daftar Mahasiswa</h2>
-        <span className="badge-total">Total: {data.length} Mahasiswa</span>
+        <span className="badge-total">Total: {totalItems} Mahasiswa</span>
       </div>
       <div className="table-wrapper" style={{ border: 'none', boxShadow: 'none', borderRadius: '10px', overflow: 'hidden' }}>
         <table>
           <thead>
             <tr>
               <th style={{ borderTopLeftRadius: '10px' }}>No</th>
+              <th>Foto</th>
               <th>NIM</th>
               <th>Nama</th>
               <th>Prodi</th>
@@ -49,13 +56,44 @@ export default function MahasiswaTable({ data, onEdit, onDelete }: MahasiswaTabl
             </tr>
           </thead>
           <tbody>
-            {currentData.length > 0 ? (
-              currentData.map((mhs, index) => (
+            {data.length > 0 ? (
+              data.map((mhs, index) => (
                 <tr key={mhs.id}>
-                  <td>{startIndex + index + 1}</td>
+                  <td>{(currentPage - 1) * 5 + index + 1}</td>
+                  <td>
+                    {mhs.foto ? (
+                      <img 
+                        src={`http://localhost:3000/uploads/${mhs.foto}`} 
+                        alt={mhs.nama} 
+                        style={{ 
+                          width: '40px', 
+                          height: '40px', 
+                          borderRadius: '50%', 
+                          objectFit: 'cover',
+                          border: '1px solid var(--border)' 
+                        }} 
+                      />
+                    ) : (
+                      <div 
+                        style={{ 
+                          width: '40px', 
+                          height: '40px', 
+                          borderRadius: '50%', 
+                          backgroundColor: '#eff6ff', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center',
+                          color: 'var(--primary)',
+                          border: '1px solid #dbeafe'
+                        }}
+                      >
+                        <User size={20} />
+                      </div>
+                    )}
+                  </td>
                   <td><strong>{mhs.nim}</strong></td>
                   <td>{mhs.nama}</td>
-                  <td>{mhs.prodi}</td>
+                  <td>{mhs.nama_prodi || 'Tidak Diketahui'}</td>
                   <td>{mhs.angkatan}</td>
                   <td>
                     <button
@@ -77,7 +115,7 @@ export default function MahasiswaTable({ data, onEdit, onDelete }: MahasiswaTabl
               ))
             ) : (
               <tr>
-                <td colSpan={6} style={{ textAlign: 'center', padding: '3rem' }}>
+                <td colSpan={7} style={{ textAlign: 'center', padding: '3rem' }}>
                   Belum ada data mahasiswa.
                 </td>
               </tr>
@@ -100,7 +138,7 @@ export default function MahasiswaTable({ data, onEdit, onDelete }: MahasiswaTabl
             {pageNumbers.map((number) => (
               <button
                 key={number}
-                onClick={() => setCurrentPage(number)}
+                onClick={() => onPageChange(number)}
                 className={`pagination-number ${currentPage === number ? 'active' : ''}`}
               >
                 {number}

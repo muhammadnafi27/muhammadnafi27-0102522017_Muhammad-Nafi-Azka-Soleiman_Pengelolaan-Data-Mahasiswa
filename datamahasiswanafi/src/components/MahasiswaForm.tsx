@@ -1,53 +1,97 @@
-import React, { useState, useEffect } from 'react';
-import { MahasiswaInput, Mahasiswa } from '../lib/api';
-import { IdCard, User, BookOpen, Calendar, Save, RotateCcw } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Mahasiswa, Prodi } from '../lib/api';
+import { IdCard, User, BookOpen, Calendar, Save, RotateCcw, Upload, Image as ImageIcon } from 'lucide-react';
 
 interface MahasiswaFormProps {
   selectedMahasiswa: Mahasiswa | null;
-  onSubmit: (data: MahasiswaInput) => Promise<void>;
+  prodis: Prodi[];
+  onSubmit: (formData: FormData) => Promise<void>;
   onCancelEdit: () => void;
 }
 
-export default function MahasiswaForm({ selectedMahasiswa, onSubmit, onCancelEdit }: MahasiswaFormProps) {
-  const [formData, setFormData] = useState<MahasiswaInput>({
-    nim: '',
-    nama: '',
-    prodi: '',
-    angkatan: new Date().getFullYear(),
-  });
+export default function MahasiswaForm({ selectedMahasiswa, prodis, onSubmit, onCancelEdit }: MahasiswaFormProps) {
+  const [nim, setNim] = useState('');
+  const [nama, setNama] = useState('');
+  const [prodiId, setProdiId] = useState('');
+  const [angkatan, setAngkatan] = useState(new Date().getFullYear());
+  const [foto, setFoto] = useState<File | null>(null);
+  const [fotoPreview, setFotoPreview] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (selectedMahasiswa) {
-      setFormData({
-        nim: selectedMahasiswa.nim,
-        nama: selectedMahasiswa.nama,
-        prodi: selectedMahasiswa.prodi,
-        angkatan: selectedMahasiswa.angkatan,
-      });
+      setNim(selectedMahasiswa.nim);
+      setNama(selectedMahasiswa.nama);
+      setProdiId(String(selectedMahasiswa.prodi_id));
+      setAngkatan(selectedMahasiswa.angkatan);
+      setFoto(null);
+      if (selectedMahasiswa.foto) {
+        setFotoPreview(`http://localhost:3000/uploads/${selectedMahasiswa.foto}`);
+      } else {
+        setFotoPreview(null);
+      }
     } else {
-      setFormData({ nim: '', nama: '', prodi: '', angkatan: new Date().getFullYear() });
+      setNim('');
+      setNama('');
+      setProdiId('');
+      setAngkatan(new Date().getFullYear());
+      setFoto(null);
+      setFotoPreview(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   }, [selectedMahasiswa]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: name === 'angkatan' ? Number(value) : value,
-    }));
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setFoto(file);
+      setFotoPreview(URL.createObjectURL(file));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    const formData = new FormData();
+    formData.append('nim', nim);
+    formData.append('nama', nama);
+    formData.append('prodi_id', prodiId);
+    formData.append('angkatan', String(angkatan));
+    if (foto) {
+      formData.append('foto', foto);
+    }
+
     try {
       await onSubmit(formData);
       if (!selectedMahasiswa) {
-        setFormData({ nim: '', nama: '', prodi: '', angkatan: new Date().getFullYear() });
+        setNim('');
+        setNama('');
+        setProdiId('');
+        setAngkatan(new Date().getFullYear());
+        setFoto(null);
+        setFotoPreview(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleReset = () => {
+    setNim('');
+    setNama('');
+    setProdiId('');
+    setAngkatan(new Date().getFullYear());
+    setFoto(null);
+    setFotoPreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -63,60 +107,132 @@ export default function MahasiswaForm({ selectedMahasiswa, onSubmit, onCancelEdi
             <IdCard size={18} className="input-icon" />
             <input
               type="text"
-              name="nim"
               placeholder="Masukkan NIM..."
-              value={formData.nim}
-              onChange={handleChange}
+              value={nim}
+              onChange={(e) => setNim(e.target.value)}
               required
               disabled={!!selectedMahasiswa || loading}
             />
           </div>
         </div>
+        
         <div className="form-group">
           <label>Nama Lengkap</label>
           <div className="input-wrapper">
             <User size={18} className="input-icon" />
             <input
               type="text"
-              name="nama"
               placeholder="Masukkan nama lengkap..."
-              value={formData.nama}
-              onChange={handleChange}
+              value={nama}
+              onChange={(e) => setNama(e.target.value)}
               required
               disabled={loading}
             />
           </div>
         </div>
+
         <div className="form-group">
           <label>Program Studi</label>
           <div className="input-wrapper">
             <BookOpen size={18} className="input-icon" />
-            <input
-              type="text"
-              name="prodi"
-              placeholder="Masukkan program studi..."
-              value={formData.prodi}
-              onChange={handleChange}
+            <select
+              value={prodiId}
+              onChange={(e) => setProdiId(e.target.value)}
               required
               disabled={loading}
-            />
+              style={{
+                width: '100%',
+                padding: '0.85rem 1rem 0.85rem 2.85rem',
+                border: '1.5px solid var(--border)',
+                borderRadius: '12px',
+                fontSize: '0.95rem',
+                color: 'var(--text-dark)',
+                backgroundColor: '#f8fafc',
+                outline: 'none',
+                appearance: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="">Pilih Program Studi...</option>
+              {prodis.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.nama_prodi}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
+
         <div className="form-group">
           <label>Tahun Angkatan</label>
           <div className="input-wrapper">
             <Calendar size={18} className="input-icon" />
             <input
               type="number"
-              name="angkatan"
               placeholder="Contoh: 2024"
-              value={formData.angkatan}
-              onChange={handleChange}
+              value={angkatan}
+              onChange={(e) => setAngkatan(Number(e.target.value))}
               required
               disabled={loading}
             />
           </div>
         </div>
+
+        <div className="form-group">
+          <label>Foto Mahasiswa</label>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div className="input-wrapper">
+              <Upload size={18} className="input-icon" />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                ref={fileInputRef}
+                disabled={loading}
+                style={{
+                  width: '100%',
+                  padding: '0.85rem 1rem 0.85rem 2.85rem',
+                  border: '1.5px solid var(--border)',
+                  borderRadius: '12px',
+                  fontSize: '0.95rem',
+                  color: 'var(--text-muted)',
+                  backgroundColor: '#f8fafc',
+                  outline: 'none',
+                  cursor: 'pointer'
+                }}
+              />
+            </div>
+            {fotoPreview && (
+              <div 
+                style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '1rem', 
+                  padding: '0.75rem', 
+                  backgroundColor: '#f8fafc', 
+                  borderRadius: '12px',
+                  border: '1px dashed var(--border)'
+                }}
+              >
+                <img 
+                  src={fotoPreview} 
+                  alt="Preview Foto" 
+                  style={{ 
+                    width: '60px', 
+                    height: '60px', 
+                    objectFit: 'cover', 
+                    borderRadius: '8px',
+                    border: '1px solid var(--border)' 
+                  }} 
+                />
+                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                  {foto ? foto.name : 'Foto saat ini'}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="actions">
           <button type="submit" className="btn-primary" disabled={loading}>
             {loading ? (
@@ -128,10 +244,16 @@ export default function MahasiswaForm({ selectedMahasiswa, onSubmit, onCancelEdi
               </>
             )}
           </button>
-          {selectedMahasiswa && (
+          
+          {selectedMahasiswa ? (
             <button type="button" className="btn-secondary" onClick={onCancelEdit} disabled={loading}>
               <RotateCcw size={16} />
               Batal Edit
+            </button>
+          ) : (
+            <button type="button" className="btn-secondary" onClick={handleReset} disabled={loading}>
+              <RotateCcw size={16} />
+              Reset
             </button>
           )}
         </div>
