@@ -2,8 +2,11 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Pengelolaan Data Mahasiswa UAI',
+  title: 'Sistem Pengelolaan Data Mahasiswa UAI',
   description: 'Sistem akademik satu halaman terpadu dengan analisis database MySQL.',
+  icons: {
+    icon: '/icon.png',
+  },
 };
 
 export default function RootLayout({

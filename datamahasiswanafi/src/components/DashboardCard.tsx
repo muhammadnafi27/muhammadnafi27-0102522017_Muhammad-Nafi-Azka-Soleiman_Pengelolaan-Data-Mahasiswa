@@ -27,7 +27,7 @@ export default function DashboardCard({ totalMahasiswa, jumlahProdi, jumlahAngka
         <div>
           <h3 className="dashboard-label">Jumlah Program Studi</h3>
           <p className="dashboard-value">{jumlahProdi}</p>
-          <span className="dashboard-description">Prodi unik yang tersedia</span>
+          <span className="dashboard-description">Program studi terdaftar</span>
         </div>
       </div>
       <div className="dashboard-card">
@@ -37,7 +37,7 @@ export default function DashboardCard({ totalMahasiswa, jumlahProdi, jumlahAngka
         <div>
           <h3 className="dashboard-label">Jumlah Angkatan</h3>
           <p className="dashboard-value">{jumlahAngkatan}</p>
-          <span className="dashboard-description">Tahun angkatan unik</span>
+          <span className="dashboard-description">Tahun angkatan terdaftar</span>
         </div>
       </div>
     </div>

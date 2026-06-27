@@ -1,250 +1,503 @@
-# Sistem Pengelolaan Data Mahasiswa Universitas Al-Azhar Indonesia (UAI)
+# Sistem Pengelolaan Data Mahasiswa
+### Universitas Al-Azhar Indonesia (UAI)
 
-Sistem Informasi Pengelolaan Data Mahasiswa UAI adalah aplikasi web full-stack modern yang dirancang untuk mendata dan mengelola informasi akademik mahasiswa. Aplikasi ini menggabungkan performa tangguh dari Next.js di sisi client dan keandalan Express.js dengan database MySQL di sisi server.
+Sistem Informasi Pengelolaan Data Mahasiswa adalah aplikasi web full-stack berbasis arsitektur client-server yang dirancang untuk mengelola data akademik mahasiswa secara terpadu. Aplikasi ini dibangun menggunakan Next.js sebagai lapisan antarmuka client, Express.js sebagai lapisan layanan API server, dan MySQL sebagai sistem manajemen basis data relasional.
 
 ---
 
 ## Daftar Isi
-1. [Teknologi dan Stack Modern](#teknologi-dan-stack-modern)
-2. [Arsitektur dan Alur Sistem](#arsitektur-dan-alur-sistem)
-3. [Struktur Direktori](#struktur-direktori)
-4. [Fitur Utama dan Dokumentasi Visual](#fitur-utama-dan-dokumentasi-visual)
-5. [Spesifikasi REST API](#spesifikasi-rest-api)
-6. [Panduan Instalasi](#panduan-instalasi)
-7. [Penyelesaian Masalah](#penyelesaian-masalah)
-8. [Informasi Pengembang](#informasi-pengembang)
+
+1. [Teknologi yang Digunakan](#teknologi-yang-digunakan)
+2. [Skema Database](#skema-database)
+3. [Arsitektur Sistem](#arsitektur-sistem)
+4. [Struktur Direktori](#struktur-direktori)
+5. [Fitur Aplikasi](#fitur-aplikasi)
+6. [Dokumentasi REST API](#dokumentasi-rest-api)
+7. [Panduan Instalasi dan Menjalankan Aplikasi](#panduan-instalasi-dan-menjalankan-aplikasi)
+8. [Penyelesaian Masalah Umum](#penyelesaian-masalah-umum)
+9. [Informasi Pengembang](#informasi-pengembang)
 
 ---
 
-## Teknologi dan Stack Modern
-
-Proyek ini dibangun menggunakan teknologi terbaru guna menciptakan antarmuka yang dinamis, cepat, dan aman:
+## Teknologi yang Digunakan
 
 ### Frontend (Client-Side)
+
 ![Next.js](https://img.shields.io/badge/next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
 ![React 19](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
 ![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
 ![CSS3](https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white)
 
-*   **Next.js 16.2.9 (App Router)**: Framework React untuk routing berbasis file secara efisien tanpa konfigurasi tambahan.
-*   **React 19.2.4**: Library antarmuka komponen deklaratif dengan Manajemen State internal.
-*   **TypeScript**: Skema keamanan tipe data statis untuk menghindari kesalahan logika pada proses runtime.
-*   **Desain Antarmuka Glassmorphism**: Penggunaan CSS manual kustom dengan variabel tema gelap laut (Dark Oceanic Blue), layout yang responsif, serta animasi transisi fluid.
-*   **Lucide React**: Paket ikon berbasis vektor yang seragam dan profesional.
+| Teknologi | Versi | Kegunaan |
+|---|---|---|
+| Next.js | 16.x (App Router) | Framework React untuk routing berbasis file dan server-side rendering |
+| React | 19.x | Library antarmuka komponen deklaratif dengan manajemen state melalui hooks |
+| TypeScript | 5.x | Sistem pengetikan statis untuk keamanan tipe data saat pengembangan |
+| Vanilla CSS | - | Sistem desain kustom dengan variabel CSS, glassmorphism, dan animasi fluid |
+| Lucide React | - | Perpustakaan ikon berbasis SVG yang ringan dan konsisten |
 
-### Backend (Server-Side) dan Database
+### Backend (Server-Side)
+
 ![Express.js](https://img.shields.io/badge/Express.js-000000?style=for-the-badge&logo=express&logoColor=white)
 ![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)
 ![MySQL](https://img.shields.io/badge/MySQL-00758F?style=for-the-badge&logo=mysql&logoColor=white)
 
-*   **Express.js 5.2.1**: Framework Node.js yang efisien untuk membangun API RESTful.
-*   **MySQL & mysql2**: Penyimpanan data relasional berkinerja tinggi menggunakan arsitektur pooling koneksi asinkronus.
-*   **TypeScript (Backend)**: Backend sepenuhnya menggunakan kompilator TypeScript yang memberikan kepastian tipe data lintas environment.
-*   **Multer**: Middleware Node.js untuk penanganan unggahan berkas gambar dengan validasi batas ukuran file.
+| Teknologi | Versi | Kegunaan |
+|---|---|---|
+| Express.js | 5.x | Framework minimalis untuk membangun REST API Node.js |
+| mysql2 | 3.x | Driver MySQL berbasis Promise dengan dukungan koneksi pool |
+| Multer | 1.x | Middleware penanganan unggahan berkas multipart/form-data |
+| TypeScript | 5.x | Pengetikan statis backend untuk keandalan kode produksi |
+| dotenv | - | Manajemen variabel lingkungan secara aman dan terisolasi |
+| CORS | - | Kebijakan akses lintas asal (Cross-Origin Resource Sharing) |
 
 ---
 
-## Arsitektur dan Alur Sistem
+## Skema Database
 
-Sistem ini menerapkan pola arsitektur Client-Server yang terpisah secara independen (decoupled):
+Database bernama `db_mahasiswa` menggunakan MySQL dengan dua tabel utama yang terhubung melalui relasi foreign key.
 
-```mermaid
-graph LR
-    subgraph Frontend [Next.js Client - Port 3001]
-        UI[Antarmuka Halaman Dashboard]
-        API_Client[Fetch API Wrapper]
-    end
-    
-    subgraph Backend [Express Server - Port 3000]
-        Express[Express Router / API endpoints]
-        MySQL_Pool[MySQL Pool Connection]
-    end
-    
-    subgraph Database [Database Server]
-        DB[(MySQL db_mahasiswa)]
-    end
+### Tabel `prodi`
 
-    UI -->|Aksi Pengguna| API_Client
-    API_Client -->|HTTP request JSON| Express
-    Express -->|Query Async| MySQL_Pool
-    MySQL_Pool -->|Kueri SQL| DB
-    DB -->|Kumpulan Baris Data| MySQL_Pool
-    MySQL_Pool -->|Kompilasi Data| Express
-    Express -->|HTTP response JSON| API_Client
-    API_Client -->|State Update| UI
+Menyimpan data program studi yang tersedia di universitas.
+
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | INT AUTO_INCREMENT | Kunci utama (Primary Key) |
+| nama_prodi | VARCHAR(100) | Nama program studi, bersifat unik |
+| created_at | TIMESTAMP | Waktu data dibuat, otomatis terisi |
+
+Data awal yang tersedia: Informatika, Sistem Informasi, Teknik Elektro, Manajemen, Akuntansi, Teknik Komputer.
+
+### Tabel `mahasiswa`
+
+Menyimpan seluruh data akademik mahasiswa dengan referensi ke tabel `prodi`.
+
+| Kolom | Tipe | Keterangan |
+|---|---|---|
+| id | INT AUTO_INCREMENT | Kunci utama (Primary Key) |
+| nim | VARCHAR(20) | Nomor Induk Mahasiswa, bersifat unik |
+| nama | VARCHAR(100) | Nama lengkap mahasiswa |
+| prodi_id | INT | Kunci asing ke tabel `prodi` |
+| angkatan | INT | Tahun angkatan masuk |
+| foto | VARCHAR(255) | Nama berkas foto profil (nullable) |
+| created_at | TIMESTAMP | Waktu data dibuat |
+| updated_at | TIMESTAMP | Waktu data terakhir diperbarui |
+
+Relasi: `mahasiswa.prodi_id` merujuk ke `prodi.id` dengan aturan `ON UPDATE CASCADE` dan `ON DELETE RESTRICT`.
+
+---
+
+## Arsitektur Sistem
+
+Sistem ini menerapkan pola arsitektur **Client-Server terpisah (Decoupled)** di mana frontend dan backend berjalan pada port yang berbeda dan berkomunikasi secara eksklusif melalui protokol HTTP dan format JSON.
+
+```
+Pengguna (Browser)
+       |
+       | HTTP Request
+       v
+[Frontend: Next.js - Port 3001]
+  - Halaman Dashboard (page.tsx)
+  - Komponen UI (MahasiswaForm, MahasiswaTable, dll.)
+  - Lapisan komunikasi API (src/lib/api.ts)
+       |
+       | HTTP/JSON (CORS diizinkan)
+       v
+[Backend: Express.js - Port 3000]
+  - Router (routes/)
+  - Kontroler (controllers/)
+  - Middleware Unggahan (middlewares/)
+  - Static File Server (/uploads)
+       |
+       | SQL Query (mysql2 Pool)
+       v
+[Database: MySQL]
+  - Tabel: prodi
+  - Tabel: mahasiswa
 ```
 
 ---
 
 ## Struktur Direktori
 
-```text
-Pengelolaan Data Mahasiswa/
-├── screenshots/               # Penyimpanan visual tangkapan layar
-├── README.md                  # Dokumentasi utama proyek
-├── backend/                   # Direktori Backend (Express + TypeScript)
-│   ├── src/
-│   │   ├── config/            # Konfigurasi database connection pool
-│   │   ├── controllers/       # Logika utama pengendalian permintaan API
-│   │   ├── middlewares/       # Penengah keamanan dan unggahan file (Multer)
-│   │   ├── routes/            # Rute definisi endpoint REST API
-│   │   ├── app.ts             # Registrasi middleware dan struktur aplikasi
-│   │   └── server.ts          # Titik masuk eksekusi server API
-│   ├── uploads/               # Penyimpanan statis gambar mahasiswa
-│   ├── db_mahasiswa.sql       # Script inisialisasi tabel dan data relasional
-│   └── seed.ts                # Skrip injeksi data awal ke dalam database
-│
-└── datamahasiswanafi/         # Direktori Frontend (Next.js + TypeScript)
-    ├── src/
-    │   ├── app/
-    │   │   ├── globals.css    # Desain, variabel warna, animasi, & layout CSS
-    │   │   ├── layout.tsx     # Komposisi antarmuka induk Next.js
-    │   │   └── page.tsx       # Komponen halaman Dashboard Utama
-    │   ├── components/        # Modul antarmuka independen yang dapat digunakan ulang
-    │   │   ├── DashboardCard.tsx  # Kartu analisis statistik mahasiswa
-    │   │   ├── MahasiswaForm.tsx  # Antarmuka input penambahan dan pengeditan data
-    │   │   ├── MahasiswaTable.tsx # Tabel penyajian data mahasiswa beserta lightbox
-    │   │   ├── ConfirmModal.tsx   # Dialog konfirmasi aksi penghapusan
-    │   │   └── Notification.tsx   # Sistem notifikasi toast interaktif
-    │   └── lib/
-    │       └── api.ts         # Wrapper komunikasi jaringan dengan abstraksi endpoint
-    └── .env.local             # Konfigurasi akses jaringan frontend
+```
+Sistem Pengelolaan Data Mahasiswa/
+|
++-- README.md                      Dokumentasi utama proyek ini
++-- screenshots/                   Dokumentasi visual tangkapan layar fitur
+|
++-- backend/                       Layanan API Server (Express + TypeScript)
+|   +-- src/
+|   |   +-- config/
+|   |   |   +-- database.ts        Inisialisasi dan konfigurasi MySQL connection pool
+|   |   +-- controllers/
+|   |   |   +-- mahasiswa.controller.ts   Logika bisnis CRUD dan pencarian mahasiswa
+|   |   |   +-- prodi.controller.ts       Logika pengambilan daftar program studi
+|   |   +-- middlewares/
+|   |   |   +-- upload.middleware.ts      Konfigurasi Multer: validasi tipe & batas ukuran berkas
+|   |   +-- routes/
+|   |   |   +-- mahasiswa.route.ts        Definisi endpoint REST API mahasiswa
+|   |   |   +-- prodi.route.ts            Definisi endpoint REST API program studi
+|   |   +-- app.ts                 Registrasi middleware, CORS, static files, dan rute
+|   |   +-- server.ts              Titik masuk eksekusi server
+|   +-- uploads/
+|   |   +-- mahasiswa/             Penyimpanan fisik berkas foto profil mahasiswa
+|   +-- db_mahasiswa.sql           Skrip inisialisasi skema tabel dan data awal
+|   +-- seed.ts                    Skrip eksekusi otomatis seeding database
+|   +-- package.json               Dependensi dan skrip backend
+|   +-- tsconfig.json              Konfigurasi kompilator TypeScript backend
+|
++-- datamahasiswanafi/             Antarmuka Pengguna (Next.js + TypeScript)
+    +-- src/
+    |   +-- app/
+    |   |   +-- globals.css        Sistem desain CSS: variabel, glassmorphism, animasi
+    |   |   +-- layout.tsx         Tata letak halaman induk (root layout)
+    |   |   +-- page.tsx           Halaman dashboard utama (komponen induk)
+    |   +-- components/
+    |   |   +-- DashboardCard.tsx  Kartu statistik: total mahasiswa, prodi, angkatan
+    |   |   +-- MahasiswaForm.tsx  Form penambahan dan pengeditan data mahasiswa
+    |   |   +-- MahasiswaTable.tsx Tabel data dengan pagination dan lightbox foto
+    |   |   +-- ConfirmModal.tsx   Dialog modal glassmorphism untuk konfirmasi hapus
+    |   |   +-- Notification.tsx   Sistem toast notifikasi animasi per jenis aksi
+    |   +-- lib/
+    |       +-- api.ts             Abstraksi pemanggilan endpoint API backend
+    +-- .env.local                 Konfigurasi URL API dan backend untuk client
+    +-- package.json               Dependensi dan skrip frontend
+    +-- tsconfig.json              Konfigurasi kompilator TypeScript frontend
 ```
 
 ---
 
-## Fitur Utama dan Dokumentasi Visual
+## Fitur Aplikasi
 
-Sistem dilengkapi dengan sekumpulan fungsionalitas manajemen data akademik terpadu:
+### Halaman Dashboard Utama
 
-### 1. Dashboard Statistik Utama (Main Page)
-Halaman utama menyajikan kartu analitik dinamis (total mahasiswa, total program studi, dan diversifikasi angkatan) bersama dengan tabel daftar mahasiswa. Desain visual dikemas dalam konsep estetika profesional Dark Glassmorphism.
+Halaman utama menyajikan tiga kartu statistik yang dihitung secara dinamis dari data aktual di database: total mahasiswa, jumlah program studi yang terdaftar, dan jumlah tahun angkatan yang berbeda. Di bawah kartu statistik, terdapat form input dan tabel daftar mahasiswa yang berdampingan dalam tata letak dua kolom.
 
 ![Main Page](./screenshots/Main%20Page.png)
 
-### 2. Pendaftaran Mahasiswa Baru (Create)
-Fasilitas formulir reaktif yang mendukung penambahan data akademik dasar beserta unggahan pasfoto. Validasi sisi server akan menjamin keunikan Nomor Induk Mahasiswa (NIM).
+### Dynamic Island Navigation Header
+
+Header aplikasi menerapkan konsep animasi Dynamic Island. Dalam kondisi normal, header menampilkan nama aplikasi, logo, dan keterangan lengkap. Ketika pengguna melakukan scroll ke bawah, header secara otomatis mengecil menjadi kapsul ramping yang memuat statistik ringkas jumlah mahasiswa. Seluruh perubahan bentuk tersebut dianimasikan menggunakan spring physics (`cubic-bezier`) sehingga transisinya terasa alami dan halus.
+
+### Pendaftaran Data Mahasiswa Baru
+
+Formulir input mendukung penambahan data lengkap: NIM, Nama Lengkap, Program Studi (dipilih dari daftar yang diambil langsung dari database), Tahun Angkatan, dan Foto Profil. Foto diunggah menggunakan komponen dropzone kustom yang mendukung klik dan pratinjau instan sebelum disimpan. Sistem memvalidasi duplikasi NIM di sisi server sebelum proses penyimpanan dilakukan.
 
 ![Create Mahasiswa](./screenshots/Create%20Mahasiswa.png)
 
-Setelah data berhasil disimpan, antarmuka akan menampilkan notifikasi sukses otomatis di layar.
+Setelah data berhasil tersimpan, sistem menampilkan notifikasi toast animasi berwarna hijau secara otomatis.
 
 ![Data Berhasil Ditambah](./screenshots/Data%20Berhasil%20Ditambah.png)
 
-### 3. Modifikasi Data Mahasiswa (Update)
-Data yang ada dapat ditarik kembali ke dalam formulir secara otomatis untuk direvisi. Sistem turut memfasilitasi pratinjau (preview) pasfoto yang telah tersimpan beserta opsi untuk menghapus atau menukarnya.
+### Pengeditan Data Mahasiswa
+
+Tombol edit pada setiap baris tabel akan memuat seluruh data mahasiswa tersebut ke dalam formulir secara otomatis. Jika mahasiswa memiliki foto, pratinjau foto yang sudah tersimpan akan ditampilkan beserta tombol hapus foto (ikon X berwarna merah). Pengguna dapat mengganti foto dengan yang baru, menghapus foto yang ada, atau membiarkannya tanpa perubahan. Perubahan NIM juga divalidasi agar tidak bentrok dengan NIM mahasiswa lain.
 
 ![Edit Mahasiswa](./screenshots/Edit%20Mahasiswa.png)
 
-Keberhasilan operasi pengeditan akan divalidasi langsung secara visual.
+Keberhasilan pengeditan dikonfirmasi dengan notifikasi toast animasi berwarna biru.
 
 ![Edit Berhasil](./screenshots/Edit%20Berhasil.png)
 
-### 4. Konfirmasi Penghapusan Data (Delete)
-Mencegah kerugian akibat kelalaian operasional melalui integrasi dialog kotak konfirmasi khusus (Confirm Modal). Pembersihan entitas pada basis data juga akan menghapus berkas foto terkait pada server untuk optimalisasi ruang simpan.
+### Penghapusan Data dengan Konfirmasi Modal
+
+Ketika tombol hapus ditekan, sistem tidak langsung menghapus data, melainkan menampilkan dialog konfirmasi kustom (Confirm Modal) bergaya glassmorphism. Dialog ini meminta pengguna untuk menegaskan niatnya sebelum penghapusan dieksekusi.
 
 ![Delete Notification](./screenshots/Delete%20Notification.png)
 
+Setelah penghapusan dikonfirmasi, data dihapus dari database dan berkas foto terkait juga dihapus dari penyimpanan server secara otomatis. Sistem kemudian menampilkan notifikasi konfirmasi bahwa data telah berhasil dihapus.
+
+![Berhasil Dihapus](./screenshots/Berhasil%20Dihapus.png)
+
+### Pencarian dan Filter Data
+
+Tabel mahasiswa mendukung pencarian teks bebas berdasarkan NIM atau nama secara real-time, serta pemfilteran berdasarkan program studi melalui dropdown. Semua operasi pencarian dan filter diproses di sisi server melalui parameter query string, sehingga hasil yang ditampilkan selalu akurat terhadap data aktual.
+
+### Pagination Data
+
+Data mahasiswa dibagi ke dalam halaman-halaman dengan kapasitas 10 data per halaman. Navigasi halaman dilengkapi dengan tombol nomor halaman, tombol sebelumnya, dan tombol berikutnya. Seluruh metadata pagination (halaman saat ini, total halaman, total data) dikelola oleh server dan dikembalikan bersama respons data.
+
+### Lightbox Foto Profil
+
+Setiap foto profil pada tabel dapat diklik untuk membuka tampilan pratinjau berukuran penuh dalam modal lightbox. Modal ini menampilkan foto dalam resolusi penuh beserta nama dan NIM mahasiswa. Animasi scale-up dan backdrop blur digunakan untuk memberikan pengalaman yang premium.
+
+### Sistem Notifikasi Toast Animasi
+
+Setiap aksi berhasil (tambah, edit, hapus) memunculkan notifikasi toast dengan identitas visual yang berbeda:
+- Warna hijau dengan ikon tambah pengguna untuk aksi tambah data.
+- Warna biru dengan ikon putar untuk aksi perbarui data.
+- Warna oranye dengan ikon tempat sampah untuk aksi hapus data.
+- Warna merah untuk kondisi kesalahan (error).
+
+Setiap notifikasi dilengkapi progress bar countdown selama 4 detik dan tombol tutup manual.
+
 ---
 
-## Spesifikasi REST API
+## Dokumentasi REST API
 
-Antarmuka pemrograman aplikasi (API) mewajibkan struktur JSON.
+Semua komunikasi antara frontend dan backend menggunakan format JSON. Backend berjalan pada `http://localhost:3000`.
 
-### 1. Mengambil Entitas Mahasiswa
-*   **Metode / Endpoint**: `GET /api/mahasiswa`
-*   **Format Respons (200 OK)**:
-    ```json
+### Endpoint: Program Studi
+
+**GET /api/prodi**
+
+Mengambil daftar seluruh program studi yang tersedia.
+
+Respons sukses (200 OK):
+```json
+{
+  "message": "Data prodi berhasil diambil",
+  "data": [
+    { "id": 1, "nama_prodi": "Informatika" },
+    { "id": 2, "nama_prodi": "Sistem Informasi" }
+  ]
+}
+```
+
+### Endpoint: Mahasiswa
+
+**GET /api/mahasiswa**
+
+Mengambil daftar mahasiswa dengan dukungan pencarian, filter, dan pagination.
+
+Parameter query yang tersedia:
+
+| Parameter | Tipe | Keterangan |
+|---|---|---|
+| search | string | Pencarian berdasarkan NIM atau nama (opsional) |
+| prodi_id | number | Filter berdasarkan ID program studi (opsional) |
+| page | number | Nomor halaman yang diminta, default: 1 |
+| limit | number | Jumlah data per halaman, default: 10 |
+
+Respons sukses (200 OK):
+```json
+{
+  "message": "Data mahasiswa berhasil diambil",
+  "meta": {
+    "page": 1,
+    "limit": 10,
+    "total": 50,
+    "totalPage": 5,
+    "totalAngkatan": 3
+  },
+  "data": [
     {
-      "message": "Data mahasiswa berhasil diambil",
-      "meta": {
-        "total": 50,
-        "totalPage": 5,
-        "totalAngkatan": 3
-      },
-      "data": [ ... ]
+      "id": 1,
+      "nim": "2201001",
+      "nama": "Ahmad Fauzi",
+      "prodi_id": 1,
+      "nama_prodi": "Informatika",
+      "angkatan": 2022,
+      "foto": "1782575265741-921367051.png",
+      "created_at": "2026-06-21T09:30:00.000Z",
+      "updated_at": "2026-06-21T09:30:00.000Z"
     }
-    ```
+  ]
+}
+```
 
-### 2. Registrasi Entitas Mahasiswa
-*   **Metode / Endpoint**: `POST /api/mahasiswa`
-*   **Payload Form-Data**: Berisi atribut `nim`, `nama`, `prodi_id`, `angkatan`, dan lampiran `foto`.
-*   **Format Respons Sukses (201 Created)**: Konfirmasi data ditambahkan dengan identitas objek yang diciptakan.
-*   **Format Respons Gagal (400 Bad Request)**: Penolakan akibat NIM ganda atau input invalid.
+**POST /api/mahasiswa**
 
-### 3. Revisi Entitas Mahasiswa
-*   **Metode / Endpoint**: `PUT /api/mahasiswa/:id`
-*   **Deskripsi**: Mengubah nilai atribut objek spesifik. Mendukung penghapusan gambar melalui parameter boolean flag form-data `removeFoto`.
+Menyimpan data mahasiswa baru. Request menggunakan format `multipart/form-data`.
 
-### 4. Eliminasi Entitas Mahasiswa
-*   **Metode / Endpoint**: `DELETE /api/mahasiswa/:id`
-*   **Deskripsi**: Penghancuran rekam basis data secara permanen sesuai dengan identitas parameter.
+| Field | Tipe | Keterangan |
+|---|---|---|
+| nim | string | Nomor Induk Mahasiswa (wajib, harus unik) |
+| nama | string | Nama lengkap mahasiswa (wajib) |
+| prodi_id | number | ID program studi (wajib) |
+| angkatan | number | Tahun angkatan (wajib) |
+| foto | file | Berkas gambar JPG/PNG/WEBP, maksimal 2MB (opsional) |
+
+Respons sukses (201 Created):
+```json
+{
+  "message": "Data mahasiswa berhasil ditambahkan",
+  "data": { "id": 11, "nim": "2401005", "nama": "Nama Mahasiswa", ... }
+}
+```
+
+Respons gagal - NIM sudah terdaftar (400 Bad Request):
+```json
+{
+  "message": "NIM tidak boleh duplikat (NIM ini sudah terdaftar)"
+}
+```
+
+**PUT /api/mahasiswa/:id**
+
+Memperbarui data mahasiswa berdasarkan ID. Request menggunakan format `multipart/form-data`.
+
+| Field | Tipe | Keterangan |
+|---|---|---|
+| nim | string | NIM baru (wajib, harus unik di antara mahasiswa lain) |
+| nama | string | Nama baru (wajib) |
+| prodi_id | number | ID program studi baru (wajib) |
+| angkatan | number | Tahun angkatan baru (wajib) |
+| foto | file | Foto baru untuk menggantikan foto lama (opsional) |
+| removeFoto | string | Isi dengan nilai `"true"` untuk menghapus foto yang ada (opsional) |
+
+Respons sukses (200 OK):
+```json
+{
+  "message": "Data mahasiswa berhasil diperbarui",
+  "data": { "id": 1, "nim": "2201001", ... }
+}
+```
+
+**DELETE /api/mahasiswa/:id**
+
+Menghapus data mahasiswa secara permanen beserta berkas foto dari penyimpanan server.
+
+Respons sukses (200 OK):
+```json
+{
+  "message": "Data mahasiswa berhasil dihapus"
+}
+```
+
+Respons gagal - ID tidak ditemukan (404 Not Found):
+```json
+{
+  "message": "Data mahasiswa tidak ditemukan"
+}
+```
 
 ---
 
-## Panduan Instalasi
+## Panduan Instalasi dan Menjalankan Aplikasi
 
-### Prasyarat Instalasi
-1. Node.js (Disarankan versi LTS v18 ke atas).
-2. MySQL Server (XAMPP, Docker, atau instalasi asli).
+### Prasyarat Sistem
 
-### Fase 1: Basis Data
-1. Aktifkan koneksi MySQL Anda.
-2. Buat skema database baru:
-   ```sql
-   CREATE DATABASE db_mahasiswa CHARACTER SET utf8mb4;
-   ```
-3. Navigasi menuju root proyek dan migrasikan struktur tabel:
+Pastikan perangkat lunak berikut telah terpasang sebelum memulai:
+
+1. **Node.js** versi LTS 18 atau lebih baru.
+2. **MySQL Server** versi 5.7 atau lebih baru (dapat menggunakan XAMPP, Laragon, atau instalasi langsung).
+3. **npm** atau **yarn** sebagai manajer paket.
+
+### Langkah 1: Inisialisasi Database
+
+1. Pastikan layanan MySQL aktif dan dapat diakses.
+2. Buka klien MySQL (phpMyAdmin, DBeaver, atau command line).
+3. Jalankan seluruh skrip SQL yang ada dalam berkas `backend/db_mahasiswa.sql`. Skrip ini akan membuat database baru bernama `db_mahasiswa`, membuat tabel `prodi` dan `mahasiswa`, serta mengisi data awal (seed data).
+
+   Melalui command line:
    ```bash
-   mysql -u root -p db_mahasiswa < backend/db_mahasiswa.sql
+   mysql -u root -p < backend/db_mahasiswa.sql
    ```
 
-### Fase 2: Backend (Express Server)
-1. Pindah ke direktori backend:
+   Apabila command line tidak mendukung operator `<`, gunakan skrip seed:
+   ```bash
+   cd backend
+   npx ts-node seed.ts
+   ```
+
+### Langkah 2: Konfigurasi dan Menjalankan Backend
+
+1. Masuk ke direktori backend:
    ```bash
    cd backend
    ```
-2. Resolusi paket dependensi:
+
+2. Pasang seluruh dependensi:
    ```bash
    npm install
    ```
-3. Eksekusi lingkungan server lokal (Port 3000):
+
+3. Buat berkas `.env` di dalam folder `backend/` dan sesuaikan isinya dengan konfigurasi MySQL lokal Anda:
+   ```env
+   PORT=3000
+   DB_HOST=localhost
+   DB_USER=root
+   DB_PASSWORD=
+   DB_NAME=db_mahasiswa
+   ```
+   Kosongkan `DB_PASSWORD` jika MySQL tidak menggunakan kata sandi.
+
+4. Jalankan server backend dalam mode pengembangan:
    ```bash
    npm run dev
    ```
 
-### Fase 3: Frontend (Next.js Client)
-1. Buka sesi terminal baru dan pindah ke area frontend:
+   Server akan berjalan di `http://localhost:3000`. Biarkan terminal ini tetap terbuka.
+
+### Langkah 3: Konfigurasi dan Menjalankan Frontend
+
+1. Buka sesi terminal baru, lalu masuk ke direktori frontend:
    ```bash
    cd datamahasiswanafi
    ```
-2. Resolusi paket dependensi:
+
+2. Pasang seluruh dependensi:
    ```bash
    npm install
    ```
-3. Operasikan mode pengembang (Port 3001):
+
+3. Pastikan berkas `.env.local` di dalam folder `datamahasiswanafi/` berisi konfigurasi berikut:
+   ```env
+   NEXT_PUBLIC_API_URL=http://localhost:3000/api
+   NEXT_PUBLIC_BACKEND_URL=http://localhost:3000
+   ```
+
+4. Jalankan aplikasi frontend dalam mode pengembangan:
    ```bash
    npm run dev
    ```
 
+   Aplikasi dapat diakses melalui browser di `http://localhost:3001`.
+
 ---
 
-## Penyelesaian Masalah
+## Penyelesaian Masalah Umum
 
-1. **Kegagalan Koneksi Database**: 
-   Verifikasi bahwa layanan MySQL beroperasi. Validasi parameter login (nama pengguna, kata sandi, dan host) di dalam `backend/src/config/database.ts`.
-2. **Kendala Gambar Profil Pecah (Broken Image)**: 
-   Pastikan port operasional backend bertepatan dengan konfigurasi alamat `NEXT_PUBLIC_BACKEND_URL` di berkas `.env.local` frontend.
-3. **Konflik Port Berjalan**: 
-   Jika menemukan indikasi *EADDRINUSE*, silakan hentikan layanan bersangkutan yang menyita port 3000 atau 3001.
+**Masalah: Tabel tidak menampilkan data atau muncul pesan "Gagal mengambil data"**
+
+Penyebab: Koneksi antara frontend dan backend gagal, atau backend tidak berjalan.
+
+Solusi:
+1. Pastikan layanan MySQL aktif (cek melalui XAMPP Control Panel atau `service mysql status`).
+2. Pastikan server backend sudah dijalankan dengan `npm run dev` di direktori `backend/`.
+3. Verifikasi bahwa nilai `DB_USER`, `DB_PASSWORD`, dan `DB_NAME` dalam berkas `.env` backend sudah benar.
+4. Buka `http://localhost:3000/api/mahasiswa` di browser untuk memastikan API merespons.
+
+**Masalah: Foto profil tidak muncul di tabel (tampil sebagai ikon placeholder)**
+
+Penyebab: URL gambar tidak dapat dijangkau, atau jalur folder statis backend salah konfigurasi.
+
+Solusi:
+1. Pastikan berkas `.env.local` frontend memiliki nilai `NEXT_PUBLIC_BACKEND_URL=http://localhost:3000`.
+2. Pastikan folder `backend/uploads/mahasiswa/` ada dan berkas foto tersimpan di dalamnya.
+3. Coba akses langsung URL gambar di browser: `http://localhost:3000/uploads/mahasiswa/nama-file.png`.
+
+**Masalah: Kesalahan CORS (Cross-Origin Request Blocked)**
+
+Penyebab: Backend menolak permintaan dari origin yang tidak diizinkan.
+
+Solusi:
+1. Pastikan frontend berjalan di port 3001 dan backend di port 3000.
+2. Periksa konfigurasi CORS di `backend/src/app.ts` dan pastikan `origin` menunjuk ke `http://localhost:3001`.
+
+**Masalah: Port sudah digunakan (EADDRINUSE: address already in use)**
+
+Solusi:
+1. Temukan dan hentikan proses yang menggunakan port tersebut. Di Windows, jalankan: `netstat -ano | findstr :3000`, kemudian `taskkill /PID <nomor-pid> /F`.
+2. Atau ubah port backend di berkas `.env` dan sesuaikan `NEXT_PUBLIC_API_URL` di `.env.local` frontend.
+
+**Masalah: NIM baru selalu ditolak sebagai duplikat padahal berbeda**
+
+Penyebab: Input NIM mengandung spasi tersembunyi di awal atau akhir.
+
+Solusi: Sistem backend telah menerapkan `.trim()` pada nilai NIM sebelum pengecekan, sehingga ini seharusnya tidak terjadi. Pastikan server backend berjalan dengan versi kode terbaru.
 
 ---
 
 ## Informasi Pengembang
 
-Dokumentasi rancang bangun sistem ini dikompilasi oleh:
+Proyek ini dikembangkan sebagai bagian dari penugasan praktikum mata kuliah Pemrograman Web menggunakan stack Next.js dan Express.js.
 
-**Muhammad Nafi Azka Soleiman**  
-**0102522017**  
-Program Praktikum Front End Next JS untuk Backend Express JS  
-**Universitas Al-Azhar Indonesia**
+**Nama Mahasiswa:** Muhammad Nafi Azka Soleiman  
+**NIM:** 0102522017  
+**Program Studi:** Informatika  
+**Mata Kuliah:** Praktikum Frontend Next.js untuk Backend Express.js  
+**Institusi:** Universitas Al-Azhar Indonesia
