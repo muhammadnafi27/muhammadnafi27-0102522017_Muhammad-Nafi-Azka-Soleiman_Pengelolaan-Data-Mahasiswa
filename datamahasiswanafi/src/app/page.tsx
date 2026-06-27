@@ -6,6 +6,7 @@ import DashboardCard from '../components/DashboardCard';
 import MahasiswaForm from '../components/MahasiswaForm';
 import MahasiswaTable from '../components/MahasiswaTable';
 import Notification, { NotificationType } from '../components/Notification';
+import ConfirmModal from '../components/ConfirmModal';
 import { getMahasiswa, createMahasiswa, updateMahasiswa, deleteMahasiswa, getProdi, Mahasiswa, Prodi } from '../lib/api';
 
 interface NotificationState {
@@ -27,6 +28,7 @@ export default function Home() {
   const [totalPage, setTotalPage] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   // Stats
   const [jumlahProdi, setJumlahProdi] = useState(0);
@@ -93,10 +95,10 @@ export default function Home() {
     try {
       if (editingMahasiswa) {
         await updateMahasiswa(editingMahasiswa.id, formData);
-        addNotification('Data mahasiswa berhasil diperbarui', 'success');
+        addNotification('Data mahasiswa berhasil diperbarui', 'update');
       } else {
         await createMahasiswa(formData);
-        addNotification('Data mahasiswa berhasil ditambahkan', 'success');
+        addNotification('Data mahasiswa berhasil ditambahkan', 'create');
       }
       setEditingMahasiswa(null);
       fetchMahasiswaData();
@@ -105,14 +107,20 @@ export default function Home() {
     }
   };
 
-  const handleDelete = async (id: number) => {
-    if (confirm('Yakin ingin menghapus data mahasiswa ini?')) {
+  const handleDelete = (id: number) => {
+    setDeletingId(id);
+  };
+
+  const confirmDelete = async () => {
+    if (deletingId !== null) {
       try {
-        await deleteMahasiswa(id);
-        addNotification('Data mahasiswa berhasil dihapus', 'success');
+        await deleteMahasiswa(deletingId);
+        addNotification('Data mahasiswa berhasil dihapus', 'delete');
         fetchMahasiswaData();
       } catch (error: any) {
         addNotification(error.message || 'Terjadi kesalahan saat menghapus data', 'error');
+      } finally {
+        setDeletingId(null);
       }
     }
   };
@@ -127,6 +135,12 @@ export default function Home() {
           onClose={() => removeNotification(notif.id)}
         />
       ))}
+
+      <ConfirmModal
+        isOpen={deletingId !== null}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeletingId(null)}
+      />
 
       <div className={`header-wrapper ${isScrolled ? 'scrolled' : ''}`}>
         <header className="dynamic-island">
