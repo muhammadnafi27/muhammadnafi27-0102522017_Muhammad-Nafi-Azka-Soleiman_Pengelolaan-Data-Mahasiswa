@@ -7,8 +7,10 @@ export const getMahasiswas = async (req: Request, res: Response) => {
   try {
     const search = req.query.search ? String(req.query.search).trim() : '';
     const prodiId = req.query.prodi_id ? String(req.query.prodi_id) : '';
-    const page = Math.max(1, parseInt(String(req.query.page || '1'), 10));
-    const limit = Math.max(1, parseInt(String(req.query.limit || '10'), 10));
+    const parsedPage = parseInt(String(req.query.page), 10);
+    const page = isNaN(parsedPage) ? 1 : Math.max(1, parsedPage);
+    const parsedLimit = parseInt(String(req.query.limit), 10);
+    const limit = isNaN(parsedLimit) ? 10 : Math.max(1, parsedLimit);
     const offset = (page - 1) * limit;
 
     let baseQuery = `
