@@ -100,6 +100,8 @@ body {
 }
 
 .dynamic-island {
+  position: relative;
+  overflow: hidden;
   width: 100%;
   max-width: 1400px;
   background: rgba(15, 23, 42, 0.78);
@@ -108,19 +110,61 @@ body {
   border: 1px solid rgba(59, 130, 246, 0.25);
   border-radius: 24px;
   padding: 1.1rem 1.85rem;
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 0 20px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 0 20px rgba(59, 130, 246, 0.15);
   transition: max-width 0.65s cubic-bezier(0.34, 1.56, 0.64, 1),
               padding 0.65s cubic-bezier(0.34, 1.56, 0.64, 1),
               border-radius 0.65s cubic-bezier(0.34, 1.56, 0.64, 1),
               background 0.6s ease,
               border-color 0.6s ease,
-              box-shadow 0.6s ease;
+              box-shadow 0.6s ease,
+              transform 0.4s ease;
   display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
   will-change: max-width, padding, border-radius, transform;
   transform: translateZ(0);
+  animation: islandGlow 4s infinite alternate ease-in-out;
+}
+
+.dynamic-island::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -150%;
+  width: 100%;
+  height: 200%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.03) 20%,
+    rgba(255, 255, 255, 0.22) 50%,
+    rgba(255, 255, 255, 0.03) 80%,
+    transparent 100%
+  );
+  transform: rotate(25deg);
+  animation: headerShimmer 5s infinite ease-in-out;
+  pointer-events: none;
+}
+
+@keyframes headerShimmer {
+  0% {
+    left: -150%;
+  }
+  30%, 100% {
+    left: 150%;
+  }
+}
+
+@keyframes islandGlow {
+  0% {
+    border-color: rgba(59, 130, 246, 0.25);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4), 0 0 20px rgba(59, 130, 246, 0.15);
+  }
+  100% {
+    border-color: rgba(14, 165, 233, 0.45);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5), 0 0 30px rgba(14, 165, 233, 0.3);
+  }
 }
 
 .brand {
@@ -335,8 +379,20 @@ body {
   transition: var(--transition);
 }
 
-.card:hover {
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+.content-grid > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.content-grid .card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.content-grid .table-wrapper {
+  flex: 1;
 }
 
 .form-title {
