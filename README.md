@@ -31,11 +31,11 @@ Sistem Informasi Pengelolaan Data Mahasiswa adalah aplikasi web full-stack berba
 
 | Teknologi | Versi | Kegunaan |
 |---|---|---|
-| Next.js | 16.x (App Router) | Framework React untuk routing berbasis file dan server-side rendering |
-| React | 19.x | Library antarmuka komponen deklaratif dengan manajemen state melalui hooks |
+| Next.js | 16.2.9 (App Router) | Framework React untuk routing berbasis file dan server-side rendering |
+| React | 19.2.4 | Library antarmuka komponen deklaratif dengan manajemen state melalui hooks |
 | TypeScript | 5.x | Sistem pengetikan statis untuk keamanan tipe data saat pengembangan |
 | Vanilla CSS | - | Sistem desain kustom dengan variabel CSS, glassmorphism, dan animasi fluid |
-| Lucide React | - | Perpustakaan ikon berbasis SVG yang ringan dan konsisten |
+| Lucide React | 1.21.0 | Perpustakaan ikon berbasis SVG yang ringan dan konsisten |
 
 ### Backend (Server-Side)
 
@@ -45,12 +45,12 @@ Sistem Informasi Pengelolaan Data Mahasiswa adalah aplikasi web full-stack berba
 
 | Teknologi | Versi | Kegunaan |
 |---|---|---|
-| Express.js | 5.x | Framework minimalis untuk membangun REST API Node.js |
-| mysql2 | 3.x | Driver MySQL berbasis Promise dengan dukungan koneksi pool |
-| Multer | 1.x | Middleware penanganan unggahan berkas multipart/form-data |
-| TypeScript | 5.x | Pengetikan statis backend untuk keandalan kode produksi |
-| dotenv | - | Manajemen variabel lingkungan secara aman dan terisolasi |
-| CORS | - | Kebijakan akses lintas asal (Cross-Origin Resource Sharing) |
+| Express.js | 5.2.1 | Framework minimalis untuk membangun REST API Node.js |
+| mysql2 | 3.22.5 | Driver MySQL berbasis Promise dengan dukungan koneksi pool |
+| Multer | 2.2.0 | Middleware penanganan unggahan berkas multipart/form-data |
+| TypeScript | 6.0.3 | Pengetikan statis backend untuk keandalan kode produksi |
+| dotenv | 17.4.2 | Manajemen variabel lingkungan secara aman dan terisolasi |
+| CORS | 2.8.6 | Kebijakan akses lintas asal (Cross-Origin Resource Sharing) |
 
 ---
 
