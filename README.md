@@ -14,8 +14,9 @@ Sistem Informasi Pengelolaan Data Mahasiswa adalah aplikasi web full-stack berba
 5. [Fitur Aplikasi](#fitur-aplikasi)
 6. [Dokumentasi REST API](#dokumentasi-rest-api)
 7. [Panduan Instalasi dan Menjalankan Aplikasi](#panduan-instalasi-dan-menjalankan-aplikasi)
-8. [Penyelesaian Masalah Umum](#penyelesaian-masalah-umum)
-9. [Informasi Pengembang](#informasi-pengembang)
+8. [Checklist Testing](#checklist-testing)
+9. [Penyelesaian Masalah Umum](#penyelesaian-masalah-umum)
+10. [Informasi Pengembang](#informasi-pengembang)
 
 ---
 
@@ -171,69 +172,85 @@ Sistem Pengelolaan Data Mahasiswa/
 
 ## Fitur Aplikasi
 
-### Halaman Dashboard Utama
+### 1. Halaman Dashboard Utama
 
 Halaman utama menyajikan tiga kartu statistik yang dihitung secara dinamis dari data aktual di database: total mahasiswa, jumlah program studi yang terdaftar, dan jumlah tahun angkatan yang berbeda. Di bawah kartu statistik, terdapat form input dan tabel daftar mahasiswa yang berdampingan dalam tata letak dua kolom.
 
-![Main Page](./screenshots/Main%20Page.png)
+Header aplikasi menerapkan konsep animasi **Dynamic Island**. Dalam kondisi normal, header menampilkan nama aplikasi, logo, dan keterangan lengkap. Ketika pengguna melakukan scroll ke bawah, header secara otomatis mengecil menjadi kapsul ramping yang memuat statistik ringkas jumlah mahasiswa.
 
-### Dynamic Island Navigation Header
+![Halaman Utama Aplikasi](./screenshots/tugas%20kelas/Homescreen.png)
 
-Header aplikasi menerapkan konsep animasi Dynamic Island. Dalam kondisi normal, header menampilkan nama aplikasi, logo, dan keterangan lengkap. Ketika pengguna melakukan scroll ke bawah, header secara otomatis mengecil menjadi kapsul ramping yang memuat statistik ringkas jumlah mahasiswa. Seluruh perubahan bentuk tersebut dianimasikan menggunakan spring physics (`cubic-bezier`) sehingga transisinya terasa alami dan halus.
+---
 
-### Pendaftaran Data Mahasiswa Baru
+### 2. Pendaftaran Data Mahasiswa Baru
 
-Formulir input mendukung penambahan data lengkap: NIM, Nama Lengkap, Program Studi (dipilih dari daftar yang diambil langsung dari database), Tahun Angkatan, dan Foto Profil. Foto diunggah menggunakan komponen dropzone kustom yang mendukung klik dan pratinjau instan sebelum disimpan. Sistem memvalidasi duplikasi NIM di sisi server sebelum proses penyimpanan dilakukan.
+Formulir input mendukung penambahan data lengkap: NIM, Nama Lengkap, Program Studi (dipilih dari dropdown yang diambil langsung dari database), Tahun Angkatan, dan Foto Profil. Foto diunggah menggunakan komponen dropzone kustom yang mendukung pratinjau instan sebelum disimpan.
 
-![Create Mahasiswa](./screenshots/Create%20Mahasiswa.png)
+Sistem memvalidasi duplikasi NIM di sisi server sebelum proses penyimpanan dilakukan. Selain itu, validasi di sisi client juga memastikan NIM minimal 5 karakter dan tahun angkatan berada dalam rentang yang wajar (1990 - sekarang).
 
-Setelah data berhasil tersimpan, sistem menampilkan notifikasi toast animasi berwarna hijau secara otomatis.
+![Mengisi Data Mahasiswa Baru](./screenshots/tugas%20kelas/Isi%20Data%20Mahasiswa%20Baru.png)
 
-![Data Berhasil Ditambah](./screenshots/Data%20Berhasil%20Ditambah.png)
+Setelah data berhasil tersimpan, sistem menampilkan notifikasi toast animasi berwarna hijau secara otomatis dan tabel langsung diperbarui.
 
-### Pengeditan Data Mahasiswa
+![Data Mahasiswa Berhasil Disimpan](./screenshots/tugas%20kelas/Data%20Mahasiswa%20Disimpan.png)
 
-Tombol edit pada setiap baris tabel akan memuat seluruh data mahasiswa tersebut ke dalam formulir secara otomatis. Jika mahasiswa memiliki foto, pratinjau foto yang sudah tersimpan akan ditampilkan beserta tombol hapus foto (ikon X berwarna merah). Pengguna dapat mengganti foto dengan yang baru, menghapus foto yang ada, atau membiarkannya tanpa perubahan. Perubahan NIM juga divalidasi agar tidak bentrok dengan NIM mahasiswa lain.
+---
 
-![Edit Mahasiswa](./screenshots/Edit%20Mahasiswa.png)
+### 3. Pengeditan Data Mahasiswa
+
+Tombol edit (ikon pensil) pada setiap baris tabel akan memuat seluruh data mahasiswa tersebut ke dalam formulir secara otomatis. Jika mahasiswa memiliki foto, pratinjau foto yang sudah tersimpan akan ditampilkan beserta tombol hapus foto. Pengguna dapat mengganti foto dengan yang baru, menghapus foto yang ada, atau membiarkannya tanpa perubahan.
+
+![Form Edit Mahasiswa](./screenshots/tugas%20kelas/Edit%20Mahasiswa.png)
 
 Keberhasilan pengeditan dikonfirmasi dengan notifikasi toast animasi berwarna biru.
 
-![Edit Berhasil](./screenshots/Edit%20Berhasil.png)
+![Edit Data Berhasil](./screenshots/tugas%20kelas/Edit%20Berhasil.png)
 
-### Penghapusan Data dengan Konfirmasi Modal
+---
 
-Ketika tombol hapus ditekan, sistem tidak langsung menghapus data, melainkan menampilkan dialog konfirmasi kustom (Confirm Modal) bergaya glassmorphism. Dialog ini meminta pengguna untuk menegaskan niatnya sebelum penghapusan dieksekusi.
+### 4. Penghapusan Data dengan Konfirmasi Modal
 
-![Delete Notification](./screenshots/Delete%20Notification.png)
+Ketika tombol hapus ditekan, sistem **tidak langsung menghapus data**, melainkan menampilkan dialog konfirmasi kustom bergaya glassmorphism (Confirm Modal). Dialog ini meminta pengguna untuk menegaskan niatnya sebelum penghapusan dieksekusi.
 
-Setelah penghapusan dikonfirmasi, data dihapus dari database dan berkas foto terkait juga dihapus dari penyimpanan server secara otomatis. Sistem kemudian menampilkan notifikasi konfirmasi bahwa data telah berhasil dihapus.
+![Dialog Konfirmasi Hapus](./screenshots/tugas%20kelas/Hapus%20Mahasiswa.png)
 
-![Berhasil Dihapus](./screenshots/Berhasil%20Dihapus.png)
+Setelah penghapusan dikonfirmasi, data dihapus dari database dan berkas foto terkait juga dihapus dari penyimpanan server secara otomatis.
 
-### Pencarian dan Filter Data
+![Data Berhasil Dihapus](./screenshots/tugas%20kelas/Hapus%20Berhasil.png)
 
-Tabel mahasiswa mendukung pencarian teks bebas berdasarkan NIM atau nama secara real-time, serta pemfilteran berdasarkan program studi melalui dropdown. Semua operasi pencarian dan filter diproses di sisi server melalui parameter query string, sehingga hasil yang ditampilkan selalu akurat terhadap data aktual.
+---
 
-![Page Filter Search](./screenshots/Page%20Filter%20Search.png)
+### 5. Pencarian Data (Search)
 
-### Pagination Data
+Tabel mahasiswa mendukung pencarian teks bebas berdasarkan **NIM atau nama** secara real-time. Sistem menerapkan debounce (penundaan 500ms) agar tidak membebani server dengan permintaan berlebihan. Selama debounce berlangsung, ikon spinner berputar ditampilkan di samping kolom pencarian.
 
-Data mahasiswa dibagi ke dalam halaman-halaman dengan kapasitas 10 data per halaman. Navigasi halaman dilengkapi dengan tombol nomor halaman, tombol sebelumnya, dan tombol berikutnya. Seluruh metadata pagination (halaman saat ini, total halaman, total data) dikelola oleh server dan dikembalikan bersama respons data.
+![Fitur Pencarian Mahasiswa](./screenshots/tugas%20kelas/Searching.png)
 
-### Lightbox Foto Profil
+---
 
-Setiap foto profil pada tabel dapat diklik untuk membuka tampilan pratinjau berukuran penuh dalam modal lightbox. Modal ini menampilkan foto dalam resolusi penuh beserta nama dan NIM mahasiswa. Animasi scale-up dan backdrop blur digunakan untuk memberikan pengalaman yang premium.
+### 6. Filter Berdasarkan Program Studi
 
-### Sistem Notifikasi Toast Animasi
+Pengguna dapat memfilter data mahasiswa berdasarkan program studi melalui dropdown. Daftar program studi diambil langsung dari endpoint `GET /api/prodi` sehingga selalu sinkron dengan data di database. Pemfilteran diproses di sisi server melalui parameter query string.
 
-Setiap aksi berhasil (tambah, edit, hapus) memunculkan notifikasi toast dengan identitas visual yang berbeda:
-- Warna hijau dengan ikon tambah pengguna untuk aksi tambah data.
-- Warna biru dengan ikon putar untuk aksi perbarui data.
-- Warna oranye dengan ikon tempat sampah untuk aksi hapus data.
-- Warna merah untuk kondisi kesalahan (error).
+![Fitur Filter Program Studi](./screenshots/tugas%20kelas/Filtering.png)
 
-Setiap notifikasi dilengkapi progress bar countdown selama 4 detik dan tombol tutup manual.
+---
+
+### 7. Pagination Data
+
+Data mahasiswa dibagi ke dalam halaman-halaman dengan kapasitas 5 data per halaman. Navigasi halaman dilengkapi dengan tombol nomor halaman, tombol sebelumnya (←), dan tombol berikutnya (→). Seluruh metadata pagination (halaman saat ini, total halaman, total data) dikelola oleh server dan dikembalikan bersama respons data.
+
+![Navigasi Pagination](./screenshots/tugas%20kelas/Pagination.png)
+
+---
+
+### 8. Fitur Tambahan
+
+- **Skeleton Loading:** Saat data sedang dimuat, tabel menampilkan animasi shimmer (kerangka transparan) alih-alih layar kosong.
+- **Empty State:** Jika data kosong atau pencarian tidak membuahkan hasil, tabel menampilkan ilustrasi "Data Tidak Ditemukan" yang informatif.
+- **Lightbox Foto Profil:** Setiap foto pada tabel dapat diklik untuk membuka pratinjau berukuran penuh dalam modal lightbox beserta nama dan NIM.
+- **Sistem Notifikasi Toast:** Setiap aksi (tambah/edit/hapus) memunculkan notifikasi dengan warna berbeda: hijau (tambah), biru (edit), oranye (hapus), merah (error). Notifikasi dilengkapi progress bar countdown 4 detik.
+- **Upload Foto Mahasiswa:** Mendukung format JPG, PNG, dan WEBP dengan batas maksimal 2MB. Foto lama otomatis dihapus dari server saat diganti atau dihapus.
 
 ---
 
@@ -273,15 +290,20 @@ Parameter query yang tersedia:
 | page | number | Nomor halaman yang diminta, default: 1 |
 | limit | number | Jumlah data per halaman, default: 10 |
 
+Contoh penggunaan:
+```
+GET /api/mahasiswa?search=ahmad&prodi_id=1&page=1&limit=5
+```
+
 Respons sukses (200 OK):
 ```json
 {
   "message": "Data mahasiswa berhasil diambil",
   "meta": {
     "page": 1,
-    "limit": 10,
+    "limit": 5,
     "total": 50,
-    "totalPage": 5,
+    "totalPage": 10,
     "totalAngkatan": 3
   },
   "data": [
@@ -316,7 +338,7 @@ Respons sukses (201 Created):
 ```json
 {
   "message": "Data mahasiswa berhasil ditambahkan",
-  "data": { "id": 11, "nim": "2401005", "nama": "Nama Mahasiswa", ... }
+  "data": { "id": 11, "nim": "2401005", "nama": "Nama Mahasiswa", "..." : "..." }
 }
 ```
 
@@ -344,7 +366,7 @@ Respons sukses (200 OK):
 ```json
 {
   "message": "Data mahasiswa berhasil diperbarui",
-  "data": { "id": 1, "nim": "2201001", ... }
+  "data": { "id": 1, "nim": "2201001", "..." : "..." }
 }
 ```
 
@@ -410,7 +432,7 @@ Pastikan perangkat lunak berikut telah terpasang sebelum memulai:
 3. Buat berkas `.env` di dalam folder `backend/` dan sesuaikan isinya dengan konfigurasi MySQL lokal Anda:
    ```env
    PORT=3000
-   DB_HOST=localhost
+   DB_HOST=127.0.0.1
    DB_USER=root
    DB_PASSWORD=
    DB_NAME=db_mahasiswa
@@ -451,46 +473,92 @@ Pastikan perangkat lunak berikut telah terpasang sebelum memulai:
 
 ---
 
+## Checklist Testing
+
+### Pengujian Backend (API)
+
+Gunakan Postman, Insomnia, atau cURL untuk menguji setiap endpoint berikut:
+
+| No | Pengujian | Endpoint | Hasil yang Diharapkan |
+|---|---|---|---|
+| 1 | Koneksi database | - | Server backend berjalan tanpa error SQL di terminal |
+| 2 | Ambil daftar prodi | GET `/api/prodi` | Mengembalikan array 6 prodi dengan status 200 |
+| 3 | Ambil daftar mahasiswa | GET `/api/mahasiswa` | Mengembalikan data + meta pagination, status 200 |
+| 4 | Pencarian mahasiswa | GET `/api/mahasiswa?search=ahmad` | Hanya mengembalikan data yang cocok |
+| 5 | Filter prodi | GET `/api/mahasiswa?prodi_id=1` | Hanya mengembalikan mahasiswa prodi Informatika |
+| 6 | Pagination | GET `/api/mahasiswa?page=2&limit=5` | Mengembalikan halaman kedua (data ke-6 s.d. ke-10) |
+| 7 | Tambah mahasiswa + foto | POST `/api/mahasiswa` (form-data) | Status 201, file tersimpan di `uploads/mahasiswa/` |
+| 8 | Update dengan foto baru | PUT `/api/mahasiswa/:id` + foto baru | Status 200, foto lama dihapus dari server |
+| 9 | Update tanpa ganti foto | PUT `/api/mahasiswa/:id` tanpa field foto | Status 200, foto lama tetap tersimpan |
+| 10 | Hapus mahasiswa | DELETE `/api/mahasiswa/:id` | Status 200, baris terhapus + file foto ikut terhapus |
+| 11 | NIM duplikat | POST `/api/mahasiswa` dengan NIM yang sudah ada | Status 400, pesan "NIM tidak boleh duplikat" |
+
+### Contoh Request Postman (Tambah Mahasiswa)
+
+- **Method:** `POST`
+- **URL:** `http://localhost:3000/api/mahasiswa`
+- **Body → form-data:**
+
+| Key | Value | Tipe |
+|---|---|---|
+| nim | 220101 | Text |
+| nama | Budi Santoso | Text |
+| prodi_id | 1 | Text |
+| angkatan | 2022 | Text |
+| foto | *(pilih file gambar)* | File |
+
+### Pengujian Frontend (UI)
+
+| No | Pengujian | Kriteria Keberhasilan |
+|---|---|---|
+| 1 | Halaman utama | Dashboard menampilkan 3 kartu statistik dan tabel data |
+| 2 | Tambah mahasiswa | Data baru muncul di tabel, notifikasi hijau muncul |
+| 3 | Edit mahasiswa | Form terisi otomatis, data berubah setelah submit |
+| 4 | Hapus mahasiswa | Modal konfirmasi muncul, data hilang setelah konfirmasi |
+| 5 | Upload foto | Pratinjau foto muncul di form, foto tampil di tabel |
+| 6 | Pencarian | Mengetik NIM/nama memfilter tabel secara real-time |
+| 7 | Filter prodi | Memilih prodi dari dropdown memfilter data tabel |
+| 8 | Pagination | Tombol halaman berfungsi, data berubah sesuai halaman |
+| 9 | Skeleton loading | Animasi shimmer muncul saat data sedang dimuat |
+| 10 | Empty state | Pesan "Data Tidak Ditemukan" muncul jika pencarian kosong |
+| 11 | Responsif | Tampilan rapi di layar laptop (1024px+) dan mobile (375px) |
+
+### Data Dummy SQL untuk Testing
+
+Jalankan query berikut di MySQL untuk menambahkan data dummy:
+
+```sql
+INSERT INTO mahasiswa (nim, nama, prodi_id, angkatan, foto) VALUES
+('230101', 'Andi Sucipto', 1, 2023, NULL),
+('230102', 'Dewi Lestari', 2, 2023, NULL),
+('230103', 'Farhan Ramadhan', 3, 2023, NULL),
+('240101', 'Siti Nurhaliza', 1, 2024, NULL),
+('240102', 'Reza Rahadian', 2, 2024, NULL),
+('240103', 'Chelsea Islan', 3, 2024, NULL),
+('240104', 'Dian Sastrowardoyo', 1, 2024, NULL),
+('240105', 'Nicholas Saputra', 4, 2024, NULL),
+('240106', 'Vanesha Prescilla', 5, 2024, NULL),
+('240107', 'Iqbaal Ramadhan', 1, 2024, NULL);
+```
+
+---
+
 ## Penyelesaian Masalah Umum
 
-**Masalah: Tabel tidak menampilkan data atau muncul pesan "Gagal mengambil data"**
-
-Penyebab: Koneksi antara frontend dan backend gagal, atau backend tidak berjalan.
-
-Solusi:
-1. Pastikan layanan MySQL aktif (cek melalui XAMPP Control Panel atau `service mysql status`).
-2. Pastikan server backend sudah dijalankan dengan `npm run dev` di direktori `backend/`.
-3. Verifikasi bahwa nilai `DB_USER`, `DB_PASSWORD`, dan `DB_NAME` dalam berkas `.env` backend sudah benar.
-4. Buka `http://localhost:3000/api/mahasiswa` di browser untuk memastikan API merespons.
-
-**Masalah: Foto profil tidak muncul di tabel (tampil sebagai ikon placeholder)**
-
-Penyebab: URL gambar tidak dapat dijangkau, atau jalur folder statis backend salah konfigurasi.
-
-Solusi:
-1. Pastikan berkas `.env.local` frontend memiliki nilai `NEXT_PUBLIC_BACKEND_URL=http://localhost:3000`.
-2. Pastikan folder `backend/uploads/mahasiswa/` ada dan berkas foto tersimpan di dalamnya.
-3. Coba akses langsung URL gambar di browser: `http://localhost:3000/uploads/mahasiswa/nama-file.png`.
-
-**Masalah: Kesalahan CORS (Cross-Origin Request Blocked)**
-
-Penyebab: Backend menolak permintaan dari origin yang tidak diizinkan.
-
-Solusi:
-1. Pastikan frontend berjalan di port 3001 dan backend di port 3000.
-2. Periksa konfigurasi CORS di `backend/src/app.ts` dan pastikan `origin` menunjuk ke `http://localhost:3001`.
-
-**Masalah: Port sudah digunakan (EADDRINUSE: address already in use)**
-
-Solusi:
-1. Temukan dan hentikan proses yang menggunakan port tersebut. Di Windows, jalankan: `netstat -ano | findstr :3000`, kemudian `taskkill /PID <nomor-pid> /F`.
-2. Atau ubah port backend di berkas `.env` dan sesuaikan `NEXT_PUBLIC_API_URL` di `.env.local` frontend.
-
-**Masalah: NIM baru selalu ditolak sebagai duplikat padahal berbeda**
-
-Penyebab: Input NIM mengandung spasi tersembunyi di awal atau akhir.
-
-Solusi: Sistem backend telah menerapkan `.trim()` pada nilai NIM sebelum pengecekan, sehingga ini seharusnya tidak terjadi. Pastikan server backend berjalan dengan versi kode terbaru.
+| No | Masalah | Penyebab | Solusi |
+|---|---|---|---|
+| 1 | **Backend tidak jalan (EADDRINUSE)** | Port `3000` sudah dipakai aplikasi lain | Matikan proses lain dengan `npx kill-port 3000` lalu jalankan ulang `npm run dev` |
+| 2 | **Database tidak terkoneksi (ECONNREFUSED / ETIMEDOUT)** | MySQL Server mati atau credentials salah | Hidupkan MySQL via XAMPP Control Panel. Cek `DB_HOST`, `DB_USER`, `DB_PASSWORD` di `.env`. Gunakan `127.0.0.1` alih-alih `localhost` jika XAMPP |
+| 3 | **Foreign Key Error saat DELETE prodi** | Ada mahasiswa yang masih berelasi dengan prodi tersebut | Hapus atau pindahkan mahasiswa terlebih dahulu |
+| 4 | **NIM Duplicate (400 Bad Request)** | NIM sudah terdaftar di database | Gunakan NIM yang berbeda dan unik |
+| 5 | **Upload foto gagal (File too large)** | Ukuran file melebihi 2MB | Kompres gambar sebelum diunggah |
+| 6 | **Foto tidak tampil di frontend** | URL backend salah atau folder uploads kosong | Pastikan `NEXT_PUBLIC_BACKEND_URL` di `.env.local` benar. Cek apakah file ada di `backend/uploads/mahasiswa/` |
+| 7 | **CORS Error (Failed to Fetch)** | Origin frontend belum diizinkan di backend | Cek `app.use(cors({ origin: '...' }))` di `backend/src/app.ts`, pastikan port Next.js (3001) terdaftar |
+| 8 | **Environment variable tidak terbaca** | Lupa restart dev server setelah mengubah `.env` | Matikan terminal (`Ctrl+C`) lalu jalankan ulang `npm run dev` |
+| 9 | **Search tidak bekerja** | Query `LIKE` tidak menggunakan wildcard | Sudah di-handle di controller dengan `%${search}%` |
+| 10 | **Pagination menampilkan NaN** | Tipe data `limit` terbaca sebagai string | Sudah di-handle dengan `parseInt()` di controller backend |
+| 11 | **UI tidak berubah / CSS lama masih muncul** | Cache browser menyimpan CSS versi sebelumnya | Lakukan Hard Reload (`Ctrl + F5` atau `Cmd + Shift + R`) |
+| 12 | **MySQL XAMPP corrupt (Incorrect file format)** | File system MySQL rusak (mati mendadak) | Rename folder `data` → `data_old`, copy folder `backup` → `data`, lalu pindahkan `ibdata1` dan folder database dari `data_old` ke `data` baru |
 
 ---
 

@@ -65,8 +65,22 @@ export default function MahasiswaForm({ selectedMahasiswa, prodis, onSubmit, onC
     }
   };
 
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMsg(null);
+
+    // Client-side validation
+    if (nim.length < 5) {
+      setErrorMsg('NIM harus minimal 5 karakter');
+      return;
+    }
+    if (angkatan < 1990 || angkatan > new Date().getFullYear() + 1) {
+      setErrorMsg('Tahun angkatan tidak valid');
+      return;
+    }
+
     setLoading(true);
 
     const formData = new FormData();
@@ -116,6 +130,20 @@ export default function MahasiswaForm({ selectedMahasiswa, prodis, onSubmit, onC
       <h2 className="form-title">
         {selectedMahasiswa ? 'Edit Data Mahasiswa' : 'Tambah Data Mahasiswa'}
       </h2>
+      {errorMsg && (
+        <div style={{
+          backgroundColor: 'rgba(239, 68, 68, 0.15)',
+          borderLeft: '4px solid #ef4444',
+          color: '#fca5a5',
+          padding: '0.75rem 1rem',
+          borderRadius: '8px',
+          marginBottom: '1.5rem',
+          fontSize: '0.9rem',
+          fontWeight: 500
+        }}>
+          {errorMsg}
+        </div>
+      )}
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label>NIM</label>

@@ -21,8 +21,11 @@ export default function Home() {
   const [editingMahasiswa, setEditingMahasiswa] = useState<Mahasiswa | null>(null);
   const [notifications, setNotifications] = useState<NotificationState[]>([]);
 
+  const [isLoading, setIsLoading] = useState(true);
+
   // Search, Filter, Pagination States
   const [search, setSearch] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
   const [filterProdi, setFilterProdi] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPage, setTotalPage] = useState(1);
@@ -54,6 +57,7 @@ export default function Home() {
   };
 
   const fetchMahasiswaData = useCallback(async () => {
+    setIsLoading(true);
     try {
       const response = await getMahasiswa(search, filterProdi, currentPage, 5);
       setMahasiswas(response.data);
@@ -64,6 +68,9 @@ export default function Home() {
       }
     } catch (error: any) {
       addNotification(error.message || 'Gagal memuat data mahasiswa', 'error');
+    } finally {
+      setIsLoading(false);
+      setIsSearching(false);
     }
   }, [search, filterProdi, currentPage]);
 
@@ -71,9 +78,14 @@ export default function Home() {
     fetchProdis();
   }, []);
 
+  // Debounced search
   useEffect(() => {
-    fetchMahasiswaData();
-  }, [fetchMahasiswaData]);
+    if (search !== '') setIsSearching(true);
+    const timeoutId = setTimeout(() => {
+      fetchMahasiswaData();
+    }, 500); // 500ms debounce
+    return () => clearTimeout(timeoutId);
+  }, [search, filterProdi, currentPage, fetchMahasiswaData]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -172,7 +184,22 @@ export default function Home() {
         {/* Search and Filter Controls */}
         <div className="search-filter-container">
           <div className="input-wrapper" style={{ flex: 1, minWidth: '250px' }}>
-            <Search size={18} className="input-icon" />
+            <Search size={18} className="input-icon" style={{ opacity: isSearching ? 0.3 : 1 }} />
+            {isSearching && (
+              <div 
+                style={{ 
+                  position: 'absolute', 
+                  left: '1.25rem',
+                  width: '18px', 
+                  height: '18px',
+                  border: '2px solid rgba(59, 130, 246, 0.3)',
+                  borderTopColor: '#3b82f6',
+                  borderRadius: '50%',
+                  animation: 'spin 1s linear infinite'
+                }} 
+              />
+            )}
+            <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { to { transform: rotate(360deg); } }` }} />
             <input
               type="text"
               placeholder="Cari NIM atau Nama..."
@@ -209,6 +236,7 @@ export default function Home() {
           <div>
             <MahasiswaTable
               data={mahasiswas}
+              isLoading={isLoading}
               onEdit={setEditingMahasiswa}
               onDelete={handleDelete}
               currentPage={currentPage}

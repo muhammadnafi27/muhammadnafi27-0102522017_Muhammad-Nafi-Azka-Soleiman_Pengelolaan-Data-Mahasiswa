@@ -4,6 +4,7 @@ import { Pencil, Trash2, ChevronLeft, ChevronRight, User, ZoomIn, X } from 'luci
 
 interface MahasiswaTableProps {
   data: Mahasiswa[];
+  isLoading?: boolean;
   onEdit: (mahasiswa: Mahasiswa) => void;
   onDelete: (id: number) => void;
   currentPage: number;
@@ -14,6 +15,7 @@ interface MahasiswaTableProps {
 
 export default function MahasiswaTable({
   data,
+  isLoading = false,
   onEdit,
   onDelete,
   currentPage,
@@ -57,9 +59,27 @@ export default function MahasiswaTable({
             </tr>
           </thead>
           <tbody>
-            {data.length > 0 ? (
+            {isLoading ? (
+              Array.from({ length: 5 }).map((_, index) => (
+                <tr key={`skeleton-${index}`}>
+                  <td><div className="skeleton" style={{ width: '20px', height: '20px' }} /></td>
+                  <td><div className="skeleton" style={{ width: '68px', height: '68px', borderRadius: '16px' }} /></td>
+                  <td><div className="skeleton" style={{ width: '80px', height: '20px' }} /></td>
+                  <td><div className="skeleton" style={{ width: '150px', height: '20px' }} /></td>
+                  <td><div className="skeleton" style={{ width: '120px', height: '28px', borderRadius: '9999px' }} /></td>
+                  <td><div className="skeleton" style={{ width: '60px', height: '28px', borderRadius: '8px' }} /></td>
+                  <td>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <div className="skeleton" style={{ width: '32px', height: '32px', borderRadius: '12px' }} />
+                      <div className="skeleton" style={{ width: '32px', height: '32px', borderRadius: '12px' }} />
+                    </div>
+                  </td>
+                </tr>
+              ))
+            ) : data.length > 0 ? (
               data.map((mhs, index) => (
-                <tr key={mhs.id}>
+                <tr key={mhs.id} style={{ animation: `fadeIn 0.3s ease-out forwards ${index * 0.05}s`, opacity: 0 }}>
+                  <style dangerouslySetInnerHTML={{ __html: `@keyframes fadeIn { to { opacity: 1; } }` }} />
                   <td>{(currentPage - 1) * 5 + index + 1}</td>
                   <td>
                     {mhs.foto ? (
@@ -196,8 +216,19 @@ export default function MahasiswaTable({
               ))
             ) : (
               <tr>
-                <td colSpan={7} style={{ textAlign: 'center', padding: '3rem' }}>
-                  Belum ada data mahasiswa.
+                <td colSpan={7} style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', opacity: 0.7 }}>
+                    <div style={{
+                      backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                      padding: '1.5rem',
+                      borderRadius: '50%',
+                      marginBottom: '1rem'
+                    }}>
+                      <User size={48} color="#60a5fa" />
+                    </div>
+                    <h3 style={{ color: '#ffffff', fontSize: '1.2rem', marginBottom: '0.5rem' }}>Data Tidak Ditemukan</h3>
+                    <p style={{ color: '#94a3b8', fontSize: '0.95rem' }}>Belum ada data mahasiswa atau pencarian tidak cocok.</p>
+                  </div>
                 </td>
               </tr>
             )}
