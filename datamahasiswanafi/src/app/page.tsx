@@ -184,15 +184,7 @@ export default function Home() {
                 <div className="island-badge" style={{ display: 'none' }}>
                   {/* Sembunyikan badge lama jika ingin, atau tampilkan di atas */}
                 </div>
-                <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', color: '#fff' }}>
-                  <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Selamat datang,</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <div style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem' }}>
-                      {user?.name?.[0]?.toUpperCase() || 'U'}
-                    </div>
-                    <span style={{ fontWeight: 600, fontSize: '0.95rem' }}>{user?.name || 'User'}</span>
-                  </div>
-                </div>
+
                 <button 
                   onClick={handleLogout}
                   style={{
@@ -224,6 +216,11 @@ export default function Home() {
           </div>
 
           <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem 2.5rem 2rem' }}>
+            <div style={{ marginBottom: '2rem' }}>
+              <h2 style={{ fontSize: '2rem', fontWeight: 700, color: '#fff', margin: 0 }}>Selamat Datang, {user?.name || 'User'}!</h2>
+              <p style={{ color: '#94a3b8', fontSize: '1rem', marginTop: '0.5rem' }}>Kelola data mahasiswa dan pantau analitik dengan mudah.</p>
+            </div>
+
             <DashboardCard 
               totalMahasiswa={totalItems} 
               jumlahProdi={jumlahProdi} 

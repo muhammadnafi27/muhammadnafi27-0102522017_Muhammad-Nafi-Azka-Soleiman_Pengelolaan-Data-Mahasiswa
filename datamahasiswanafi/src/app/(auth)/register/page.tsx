@@ -6,6 +6,7 @@ import { User, CreditCard, Mail, BookOpen, Lock, Eye, EyeOff, ChevronDown } from
 import Link from 'next/link';
 import AuthLeftPanel from '@/components/AuthLeftPanel';
 import { fetchApi } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
 
 interface Prodi {
   id: number;
@@ -18,13 +19,22 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [prodiId, setProdiId] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [prodis, setProdis] = useState<Prodi[]>([]);
 
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.push('/');
+    }
+  }, [isLoading, isAuthenticated, router]);
 
   // Load prodi for selection
   useEffect(() => {
@@ -56,8 +66,23 @@ export default function RegisterPage() {
     setErrorMsg('');
     setSuccessMsg('');
 
+    if (namaLengkap.trim().length < 3) {
+      setErrorMsg('Nama minimal 3 karakter');
+      return;
+    }
+
     if (password.length < 6) {
       setErrorMsg('Password minimal 6 karakter');
+      return;
+    }
+
+    if (password.length > 72) {
+      setErrorMsg('Password maksimal 72 karakter');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMsg('Konfirmasi password tidak cocok');
       return;
     }
 
@@ -229,8 +254,34 @@ export default function RegisterPage() {
                     type="button"
                     className="auth-input-toggle"
                     onClick={() => setShowPassword(!showPassword)}
+                    aria-label="Toggle password visibility"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="auth-form-group">
+                <label className="auth-label">Konfirmasi Password</label>
+                <div className="auth-input-wrapper">
+                  <span className="auth-input-icon">
+                    <Lock size={18} />
+                  </span>
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    className="auth-input"
+                    placeholder="Ulangi password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="auth-input-toggle"
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    aria-label="Toggle confirm password visibility"
+                  >
+                    {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
                 </div>
               </div>

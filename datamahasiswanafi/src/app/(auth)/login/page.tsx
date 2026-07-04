@@ -16,7 +16,13 @@ export default function LoginPage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
-  const { login } = useAuth();
+  const { login, isAuthenticated, isLoading } = useAuth();
+
+  React.useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      router.push('/');
+    }
+  }, [isLoading, isAuthenticated, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -76,9 +82,9 @@ export default function LoginPage() {
                     <Mail size={18} />
                   </span>
                   <input
-                    type="text"
+                    type="email"
                     className="auth-input"
-                    placeholder="Masukkan email atau NIM"
+                    placeholder="Masukkan email"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required
@@ -110,15 +116,7 @@ export default function LoginPage() {
                 </div>
               </div>
 
-              <div className="auth-extra-row">
-                <label className="auth-checkbox-label">
-                  <input type="checkbox" className="auth-checkbox" />
-                  Ingat saya
-                </label>
-                <Link href="#" className="auth-forgot-link">
-                  Lupa password?
-                </Link>
-              </div>
+
 
               <button
                 type="submit"
