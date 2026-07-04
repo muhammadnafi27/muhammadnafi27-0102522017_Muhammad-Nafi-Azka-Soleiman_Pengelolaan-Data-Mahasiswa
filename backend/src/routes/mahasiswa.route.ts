@@ -5,11 +5,9 @@ import { authMiddleware } from '../middlewares/auth.middleware';
 
 const router = Router();
 
-router.use(authMiddleware);
-
-router.get('/', getMahasiswas);
-router.post('/', uploadFotoMahasiswa.single('foto'), createMahasiswa);
-router.put('/:id', uploadFotoMahasiswa.single('foto'), updateMahasiswa);
-router.delete('/:id', deleteMahasiswa);
+router.get('/', authMiddleware, getMahasiswas);
+router.post('/', authMiddleware, uploadFotoMahasiswa.single('foto'), createMahasiswa);
+router.put('/:id', authMiddleware, uploadFotoMahasiswa.single('foto'), updateMahasiswa);
+router.delete('/:id', authMiddleware, deleteMahasiswa);
 
 export default router;

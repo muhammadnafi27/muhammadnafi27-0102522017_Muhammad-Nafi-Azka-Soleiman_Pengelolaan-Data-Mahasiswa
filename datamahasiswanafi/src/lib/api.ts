@@ -1,11 +1,80 @@
-import { getToken } from './auth';
+import { getToken, clearAuth } from './auth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
-const getAuthHeaders = (): HeadersInit => {
-  const token = getToken();
-  return token ? { 'Authorization': `Bearer ${token}` } : {};
-};
+interface FetchOptions extends Omit<RequestInit, 'body'> {
+  requireAuth?: boolean;
+  body?: Record<string, unknown> | FormData;
+}
+
+let isRedirecting = false;
+
+export async function fetchApi<T>(endpoint: string, options: FetchOptions = {}): Promise<T> {
+  const { requireAuth = true, headers, body, ...rest } = options;
+
+  const config: RequestInit = {
+    ...rest,
+    headers: new Headers(headers || {}),
+  };
+
+  if (requireAuth) {
+    const token = getToken();
+    if (token) {
+      (config.headers as Headers).set('Authorization', `Bearer ${token}`);
+    }
+  }
+
+  if (body) {
+    if (!(body instanceof FormData)) {
+      (config.headers as Headers).set('Content-Type', 'application/json');
+      config.body = JSON.stringify(body);
+    } else {
+      config.body = body;
+    }
+  }
+
+  try {
+    const response = await fetch(`${API_URL}${endpoint}`, config);
+
+    if (response.status === 401) {
+      if (typeof window !== 'undefined' && !isRedirecting && window.location.pathname !== '/login') {
+        isRedirecting = true;
+        clearAuth();
+        window.location.href = '/login';
+      }
+      throw new Error('Sesi telah habis, silakan login kembali.');
+    }
+
+    if (response.status === 403) {
+      throw new Error('Akses ditolak.');
+    }
+
+    const text = await response.text();
+    if (!text) {
+      if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+      return {} as T;
+    }
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      if (!response.ok) throw new Error(text || `HTTP Error: ${response.status}`);
+      return text as unknown as T;
+    }
+
+    if (!response.ok) {
+      throw new Error(data?.message || `Terjadi kesalahan pada server (${response.status})`);
+    }
+
+    return data;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    throw new Error('Network error atau terjadi kesalahan yang tidak diketahui');
+  }
+}
 
 export interface Prodi {
   id: number;
@@ -34,25 +103,15 @@ export interface PaginationMeta {
 }
 
 export interface MahasiswaResponse {
-  message: string;
+  success?: boolean;
+  message?: string;
   meta: PaginationMeta;
   data: Mahasiswa[];
 }
 
-async function handleResponse<T>(response: Response): Promise<T> {
-  const data = await response.json().catch(() => null);
-  if (!response.ok) {
-    throw new Error(data?.message || 'Terjadi kesalahan pada server');
-  }
-  return data.data !== undefined ? data.data : data;
-}
-
 export const getProdi = async (): Promise<Prodi[]> => {
-  const res = await fetch(`${API_URL}/prodi`, { 
-    cache: 'no-store',
-    headers: getAuthHeaders()
-  });
-  return handleResponse<Prodi[]>(res);
+  const data = await fetchApi<{ data?: Prodi[] }>('/prodi');
+  return data.data !== undefined ? data.data : (data as unknown as Prodi[]);
 };
 
 export const getMahasiswa = async (
@@ -68,39 +127,27 @@ export const getMahasiswa = async (
     limit: String(limit)
   });
   
-  const res = await fetch(`${API_URL}/mahasiswa?${queryParams.toString()}`, { 
-    cache: 'no-store',
-    headers: getAuthHeaders()
-  });
-  const data = await res.json().catch(() => null);
-  if (!res.ok) {
-    throw new Error(data?.message || 'Terjadi kesalahan pada server');
-  }
-  return data;
+  return fetchApi<MahasiswaResponse>(`/mahasiswa?${queryParams.toString()}`);
 };
 
 export const createMahasiswa = async (formData: FormData): Promise<Mahasiswa> => {
-  const res = await fetch(`${API_URL}/mahasiswa`, {
+  const data = await fetchApi<{ data?: Mahasiswa }>('/mahasiswa', {
     method: 'POST',
-    headers: getAuthHeaders(),
-    body: formData, // Jangan set Content-Type secara manual agar browser menentukan boundary secara otomatis
+    body: formData,
   });
-  return handleResponse<Mahasiswa>(res);
+  return data.data !== undefined ? data.data : (data as unknown as Mahasiswa);
 };
 
 export const updateMahasiswa = async (id: number, formData: FormData): Promise<Mahasiswa> => {
-  const res = await fetch(`${API_URL}/mahasiswa/${id}`, {
+  const data = await fetchApi<{ data?: Mahasiswa }>(`/mahasiswa/${id}`, {
     method: 'PUT',
-    headers: getAuthHeaders(),
     body: formData,
   });
-  return handleResponse<Mahasiswa>(res);
+  return data.data !== undefined ? data.data : (data as unknown as Mahasiswa);
 };
 
 export const deleteMahasiswa = async (id: number): Promise<void> => {
-  const res = await fetch(`${API_URL}/mahasiswa/${id}`, {
+  await fetchApi(`/mahasiswa/${id}`, {
     method: 'DELETE',
-    headers: getAuthHeaders(),
   });
-  await handleResponse<void>(res);
 };

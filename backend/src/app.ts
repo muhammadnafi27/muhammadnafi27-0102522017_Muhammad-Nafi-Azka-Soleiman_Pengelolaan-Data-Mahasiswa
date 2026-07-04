@@ -11,9 +11,9 @@ const app: Application = express();
 
 // Middlewares
 app.use(cors({
-  origin: "http://localhost:3001",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type"]
+  origin: process.env.FRONTEND_URL || "http://localhost:3001",
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 app.use(express.json());
 

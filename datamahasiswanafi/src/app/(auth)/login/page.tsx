@@ -2,8 +2,10 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { setToken, setUser } from '@/lib/auth';
-import { LogIn, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { fetchApi } from '@/lib/api';
+import { AuthUser } from '@/lib/auth';
+import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import AuthLeftPanel from '@/components/AuthLeftPanel';
 
@@ -14,6 +16,7 @@ export default function LoginPage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { login } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,20 +24,13 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'}/auth/login`, {
+      const response = await fetchApi<{ success: boolean; message: string; data: { token: string; user: AuthUser } }>('/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        requireAuth: false,
+        body: { email: username, password }
       });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Login gagal');
-      }
-
-      setToken(data.token);
-      setUser(data.user);
+      
+      login(response.data.token, response.data.user);
       router.push('/');
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -54,9 +50,6 @@ export default function LoginPage() {
         <div className="auth-right">
           <div className="auth-right-container">
             <div className="auth-form-header">
-              <div className="auth-header-icon">
-                <LogIn size={22} />
-              </div>
               <h2 className="auth-form-title">Selamat Datang</h2>
               <p className="auth-form-subtitle">Masuk ke akun Anda untuk melanjutkan</p>
             </div>

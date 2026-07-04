@@ -1,31 +1,69 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_key_123';
+export type UserRole = "admin" | "operator" | "viewer";
 
-export interface AuthRequest extends Request {
-  user?: {
-    id: number;
-    username: string;
-    role: string;
-  };
-}
+export type AuthUser = {
+  id: number;
+  email: string;
+  role: UserRole;
+};
+
+export type AuthRequest = Request & {
+  user?: AuthUser;
+};
+
+const JWT_SECRET = process.env.JWT_SECRET as string;
 
 export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction): void => {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    res.status(401).json({ message: 'Akses ditolak. Token tidak ditemukan atau tidak valid' });
+  if (!authHeader) {
+    res.status(401).json({ success: false, message: 'Token tidak ditemukan' });
     return;
   }
 
-  const token = authHeader.split(' ')[1];
+  if (!authHeader.startsWith('Bearer ')) {
+    res.status(401).json({ success: false, message: 'Format token tidak valid' });
+    return;
+  }
+
+  const token = authHeader.substring(7);
+  if (!token) {
+    res.status(401).json({ success: false, message: 'Format token tidak valid' });
+    return;
+  }
+
+  if (!JWT_SECRET) {
+    res.status(500).json({ success: false, message: 'Internal server error' });
+    return;
+  }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: number; username: string; role: string };
-    req.user = decoded;
+    const decoded = jwt.verify(token, JWT_SECRET);
+    
+    if (!decoded || typeof decoded !== 'object') {
+      res.status(401).json({ success: false, message: 'Token tidak valid atau telah kedaluwarsa' });
+      return;
+    }
+
+    if (
+      typeof decoded.id !== 'number' || 
+      typeof decoded.email !== 'string' || 
+      !(decoded.role === 'admin' || decoded.role === 'operator' || decoded.role === 'viewer')
+    ) {
+      res.status(401).json({ success: false, message: 'Token tidak valid atau telah kedaluwarsa' });
+      return;
+    }
+
+    req.user = {
+      id: decoded.id,
+      email: decoded.email,
+      role: decoded.role as UserRole
+    };
+
     next();
   } catch (error) {
-    res.status(401).json({ message: 'Token tidak valid atau sudah kadaluarsa' });
+    res.status(401).json({ success: false, message: 'Token tidak valid atau telah kedaluwarsa' });
   }
 };

@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { UserPlus, User, CreditCard, Mail, BookOpen, Lock, Eye, EyeOff, ChevronDown } from 'lucide-react';
+import { User, CreditCard, Mail, BookOpen, Lock, Eye, EyeOff, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 import AuthLeftPanel from '@/components/AuthLeftPanel';
+import { fetchApi } from '@/lib/api';
 
 interface Prodi {
   id: number;
@@ -63,23 +64,17 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'}/auth/register`, {
+      await fetchApi('/auth/register', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        requireAuth: false,
+        body: {
           nama_lengkap: namaLengkap,
           nim,
           email,
           prodi_id: prodiId ? parseInt(prodiId) : null,
           password
-        })
+        }
       });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || 'Registrasi gagal');
-      }
 
       setSuccessMsg('Registrasi berhasil! Mengalihkan ke halaman login...');
       setTimeout(() => {
@@ -103,9 +98,6 @@ export default function RegisterPage() {
         <div className="auth-right">
           <div className="auth-right-container">
             <div className="auth-form-header">
-              <div className="auth-header-icon">
-                <UserPlus size={22} />
-              </div>
               <h2 className="auth-form-title">Buat Akun Baru</h2>
               <p className="auth-form-subtitle">Daftarkan diri Anda untuk mengakses sistem</p>
             </div>
@@ -139,79 +131,83 @@ export default function RegisterPage() {
             )}
 
             <form onSubmit={handleRegister}>
-              <div className="auth-form-group">
-                <label className="auth-label">Nama Lengkap</label>
-                <div className="auth-input-wrapper">
-                  <span className="auth-input-icon">
-                    <User size={18} />
-                  </span>
-                  <input
-                    type="text"
-                    className="auth-input"
-                    placeholder="Masukkan nama lengkap"
-                    value={namaLengkap}
-                    onChange={(e) => setNamaLengkap(e.target.value)}
-                    required
-                  />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem' }}>
+                <div className="auth-form-group">
+                  <label className="auth-label">Nama Lengkap</label>
+                  <div className="auth-input-wrapper">
+                    <span className="auth-input-icon">
+                      <User size={18} />
+                    </span>
+                    <input
+                      type="text"
+                      className="auth-input"
+                      placeholder="Nama lengkap"
+                      value={namaLengkap}
+                      onChange={(e) => setNamaLengkap(e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="auth-form-group">
+                  <label className="auth-label">NIM</label>
+                  <div className="auth-input-wrapper">
+                    <span className="auth-input-icon">
+                      <CreditCard size={18} />
+                    </span>
+                    <input
+                      type="text"
+                      className="auth-input"
+                      placeholder="NIM"
+                      value={nim}
+                      onChange={(e) => setNim(e.target.value)}
+                      required
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="auth-form-group">
-                <label className="auth-label">NIM</label>
-                <div className="auth-input-wrapper">
-                  <span className="auth-input-icon">
-                    <CreditCard size={18} />
-                  </span>
-                  <input
-                    type="text"
-                    className="auth-input"
-                    placeholder="Masukkan NIM"
-                    value={nim}
-                    onChange={(e) => setNim(e.target.value)}
-                    required
-                  />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 1rem' }}>
+                <div className="auth-form-group">
+                  <label className="auth-label">Email</label>
+                  <div className="auth-input-wrapper">
+                    <span className="auth-input-icon">
+                      <Mail size={18} />
+                    </span>
+                    <input
+                      type="email"
+                      className="auth-input"
+                      placeholder="Email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                    />
+                  </div>
                 </div>
-              </div>
 
-              <div className="auth-form-group">
-                <label className="auth-label">Email</label>
-                <div className="auth-input-wrapper">
-                  <span className="auth-input-icon">
-                    <Mail size={18} />
-                  </span>
-                  <input
-                    type="email"
-                    className="auth-input"
-                    placeholder="Masukkan email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="auth-form-group">
-                <label className="auth-label">Program Studi</label>
-                <div className="auth-input-wrapper">
-                  <span className="auth-input-icon">
-                    <BookOpen size={18} />
-                  </span>
-                  <select
-                    className="auth-select"
-                    value={prodiId}
-                    onChange={(e) => setProdiId(e.target.value)}
-                    required
-                  >
-                    <option value="" disabled hidden>Pilih Program Studi</option>
-                    {prodis.map((p) => (
-                      <option key={p.id} value={p.id} style={{ backgroundColor: '#090d16', color: '#fff' }}>
-                        {p.nama_prodi}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="auth-select-arrow">
-                    <ChevronDown size={18} />
-                  </span>
+                <div className="auth-form-group">
+                  <label className="auth-label">Program Studi</label>
+                  <div className="auth-input-wrapper">
+                    <span className="auth-input-icon">
+                      <BookOpen size={18} />
+                    </span>
+                    <select
+                      className="auth-select"
+                      value={prodiId}
+                      onChange={(e) => setProdiId(e.target.value)}
+                      required
+                    >
+                      <option value="" disabled hidden>Pilih Prodi</option>
+                      {prodis.map((p) => (
+                        <option key={p.id} value={p.id} style={{ backgroundColor: '#090d16', color: '#fff' }}>
+                          {p.nama_prodi}
+                        </option>
+                      ))}
+                    </select>
+                    <span className="auth-select-arrow">
+                      <ChevronDown size={18} />
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -243,6 +239,7 @@ export default function RegisterPage() {
                 type="submit"
                 className="auth-submit-btn"
                 disabled={loading}
+                style={{ marginTop: '0.5rem' }}
               >
                 {loading ? 'Mendaftarkan...' : 'Daftar Sekarang'}
               </button>

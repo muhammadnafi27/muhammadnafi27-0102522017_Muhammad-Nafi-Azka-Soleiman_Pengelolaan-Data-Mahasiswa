@@ -3,8 +3,9 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import pool from '../config/database';
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
+import { AuthRequest } from '../middlewares/auth.middleware';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_key_123';
+const JWT_SECRET = process.env.JWT_SECRET as string;
 
 export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -30,8 +31,8 @@ export const register = async (req: Request, res: Response, next: NextFunction):
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     const [result] = await pool.query<ResultSetHeader>(
-      'INSERT INTO users (nama_lengkap, nim, email, prodi_id, password, role) VALUES (?, ?, ?, ?, ?, ?)',
-      [nama_lengkap, nim, email, prodi_id || null, hashedPassword, 'user']
+      'INSERT INTO users (name, nama_lengkap, nim, email, prodi_id, password, role) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [nama_lengkap, nama_lengkap, nim, email, prodi_id || null, hashedPassword, 'viewer']
     );
 
     res.status(201).json({
@@ -41,7 +42,7 @@ export const register = async (req: Request, res: Response, next: NextFunction):
         nama_lengkap,
         nim,
         email,
-        role: 'user'
+        role: 'viewer'
       }
     });
   } catch (error) {
@@ -51,21 +52,27 @@ export const register = async (req: Request, res: Response, next: NextFunction):
 
 export const login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { username, password } = req.body; // username represents either email or NIM
+    const { email, password } = req.body;
 
-    if (!username || !password) {
-      res.status(400).json({ message: 'Email/NIM dan password wajib diisi' });
+    if (!email || !password || typeof email !== 'string' || typeof password !== 'string') {
+      res.status(400).json({ message: 'Email dan password wajib diisi' });
       return;
     }
 
-    // Query user where email = username OR nim = username
+    const trimmedEmail = email.trim().toLowerCase();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      res.status(400).json({ message: 'Format email tidak valid' });
+      return;
+    }
+
     const [users] = await pool.query<RowDataPacket[]>(
-      'SELECT * FROM users WHERE email = ? OR nim = ?',
-      [username, username]
+      'SELECT id, name, email, password, role FROM users WHERE email = ? LIMIT 1',
+      [trimmedEmail]
     );
     
     if (users.length === 0) {
-      res.status(401).json({ message: 'Email/NIM atau password salah' });
+      res.status(401).json({ message: 'Email atau password salah' });
       return;
     }
 
@@ -73,34 +80,81 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      res.status(401).json({ message: 'Email/NIM atau password salah' });
+      res.status(401).json({ message: 'Email atau password salah' });
       return;
     }
 
+    const expiresIn = process.env.JWT_EXPIRES_IN || '2h';
     const token = jwt.sign(
       { 
         id: user.id, 
-        nama_lengkap: user.nama_lengkap, 
-        nim: user.nim, 
         email: user.email, 
         role: user.role 
       },
       JWT_SECRET,
-      { expiresIn: '1d' }
+      { expiresIn: expiresIn as jwt.SignOptions['expiresIn'] }
     );
 
     res.status(200).json({
+      success: true,
       message: 'Login berhasil',
-      token,
-      user: {
-        id: user.id,
-        nama_lengkap: user.nama_lengkap,
-        nim: user.nim,
-        email: user.email,
-        role: user.role
+      data: {
+        token,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        }
       }
     });
   } catch (error) {
     next(error);
   }
+};
+
+export const getCurrentUser = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const userId = req.user?.id;
+    
+    if (!userId) {
+      res.status(401).json({ message: 'Sesi tidak valid' });
+      return;
+    }
+
+    const [users] = await pool.query<RowDataPacket[]>(
+      'SELECT id, name, email, role, created_at, updated_at FROM users WHERE id = ? LIMIT 1',
+      [userId]
+    );
+
+    if (users.length === 0) {
+      res.status(401).json({ message: 'User tidak ditemukan atau sesi kadaluarsa' });
+      return;
+    }
+
+    const user = users[0];
+
+    res.status(200).json({
+      success: true,
+      data: {
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          created_at: user.created_at,
+          updated_at: user.updated_at
+        }
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const logout = async (req: Request, res: Response): Promise<void> => {
+  res.status(200).json({
+    success: true,
+    message: 'Logout berhasil'
+  });
 };

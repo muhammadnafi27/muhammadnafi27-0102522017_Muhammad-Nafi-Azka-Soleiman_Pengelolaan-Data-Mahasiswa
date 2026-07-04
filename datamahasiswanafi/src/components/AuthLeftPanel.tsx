@@ -7,9 +7,9 @@ export default function AuthLeftPanel() {
   return (
     <div className="auth-left">
       <div className="auth-left-container">
-        <div>
+        <div className="auth-brand-header">
           <div className="auth-brand-logo">
-            <GraduationCap size={32} color="#ffffff" />
+            <GraduationCap size={44} color="#ffffff" />
           </div>
           
           <div className="auth-left-content">
@@ -25,7 +25,7 @@ export default function AuthLeftPanel() {
         <div className="auth-features-list">
           <div className="auth-feature-item">
             <div className="auth-feature-icon-box">
-              <Users size={26} />
+              <Users size={32} color="#ffffff" />
             </div>
             <div className="auth-feature-text">
               <h4>Data Mahasiswa</h4>
@@ -35,7 +35,7 @@ export default function AuthLeftPanel() {
 
           <div className="auth-feature-item">
             <div className="auth-feature-icon-box">
-              <Grid size={26} />
+              <Grid size={32} color="#ffffff" />
             </div>
             <div className="auth-feature-text">
               <h4>Program Studi</h4>
@@ -45,7 +45,7 @@ export default function AuthLeftPanel() {
 
           <div className="auth-feature-item">
             <div className="auth-feature-icon-box">
-              <BarChart3 size={26} />
+              <BarChart3 size={32} color="#ffffff" />
             </div>
             <div className="auth-feature-text">
               <h4>Analisis Data</h4>
