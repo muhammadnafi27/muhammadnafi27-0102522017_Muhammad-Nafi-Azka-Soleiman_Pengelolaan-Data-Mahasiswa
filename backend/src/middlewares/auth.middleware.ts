@@ -1,53 +1,76 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { z } from 'zod';
-import dotenv from 'dotenv';
 
-dotenv.config();
-
-const jwtPayloadSchema = z.object({
-  id: z.number().or(z.string().transform(Number)),
-  email: z.string().email(),
-  role: z.enum(['admin', 'operator', 'viewer']),
-  iat: z.number().optional(),
-  exp: z.number().optional()
-});
+type AuthUser = {
+  id: number;
+  email: string;
+  nim: string;
+  role: "admin" | "operator" | "viewer";
+};
 
 export interface AuthenticatedRequest extends Request {
-  user?: z.infer<typeof jwtPayloadSchema>;
+  user?: AuthUser;
 }
 
-export const authenticateJWT = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+export const authenticateJWT = (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ success: false, message: 'Token tidak ditemukan' });
+  if (!authHeader) {
+    res.status(401).json({ success: false, message: 'Token tidak ditemukan' });
+    return;
+  }
+
+  if (!authHeader.startsWith('Bearer ')) {
+    res.status(401).json({ success: false, message: 'Format token tidak valid' });
+    return;
   }
 
   const token = authHeader.split(' ')[1];
   if (!token) {
-    return res.status(401).json({ success: false, message: 'Token tidak ditemukan' });
+    res.status(401).json({ success: false, message: 'Token tidak ditemukan' });
+    return;
   }
 
   jwt.verify(token, process.env.JWT_SECRET as string, (err, decoded) => {
     if (err) {
-      return res.status(401).json({ success: false, message: 'Token tidak valid atau telah kedaluwarsa' });
+      res.status(401).json({ success: false, message: 'Token tidak valid atau telah kedaluwarsa' });
+      return;
     }
 
-    const parseResult = jwtPayloadSchema.safeParse(decoded);
-    if (!parseResult.success) {
-      return res.status(401).json({ success: false, message: 'Token tidak valid atau telah kedaluwarsa' });
+    if (!decoded || typeof decoded !== 'object') {
+      res.status(401).json({ success: false, message: 'Token tidak valid atau telah kedaluwarsa' });
+      return;
     }
 
-    req.user = parseResult.data;
+    const payload = decoded as any;
+    const id = payload.id || payload.sub;
+
+    if (!id || !payload.email || !payload.nim || !payload.role) {
+      res.status(401).json({ success: false, message: 'Token tidak valid atau telah kedaluwarsa' });
+      return;
+    }
+
+    if (!['admin', 'operator', 'viewer'].includes(payload.role)) {
+      res.status(401).json({ success: false, message: 'Token tidak valid atau telah kedaluwarsa' });
+      return;
+    }
+
+    req.user = {
+      id: Number(id),
+      email: payload.email,
+      nim: payload.nim,
+      role: payload.role as "admin" | "operator" | "viewer"
+    };
+
     next();
   });
 };
 
 export const authorizeRoles = (...roles: string[]) => {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction): void => {
     if (!req.user || !roles.includes(req.user.role)) {
-      return res.status(403).json({ success: false, message: 'Anda tidak memiliki izin untuk mengakses fitur ini' });
+      res.status(403).json({ success: false, message: 'Anda tidak memiliki izin untuk mengakses fitur ini' });
+      return;
     }
     next();
   };
