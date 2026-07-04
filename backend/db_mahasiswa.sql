@@ -59,11 +59,18 @@ SELECT m.id, m.nim, m.nama, p.nama_prodi, m.angkatan, m.foto, m.created_at, m.up
 FROM mahasiswa m
 JOIN prodi p ON m.prodi_id = p.id;
 
--- 3. Tabel Users (Otentikasi)
+-- 3. Tabel Users (Otentikasi Premium)
 CREATE TABLE users (
   id INT AUTO_INCREMENT PRIMARY KEY,
-  username VARCHAR(100) NOT NULL UNIQUE,
+  nama_lengkap VARCHAR(100) NOT NULL,
+  nim VARCHAR(20) NOT NULL UNIQUE,
+  email VARCHAR(100) NOT NULL UNIQUE,
+  prodi_id INT DEFAULT NULL,
   password VARCHAR(255) NOT NULL,
   role ENUM('admin', 'user') DEFAULT 'user',
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_users_prodi FOREIGN KEY (prodi_id) 
+    REFERENCES prodi(id) 
+    ON UPDATE CASCADE 
+    ON DELETE SET NULL
 ) ENGINE=InnoDB;

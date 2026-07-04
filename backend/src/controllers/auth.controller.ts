@@ -1,23 +1,28 @@
 import { Request, Response, NextFunction } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { pool } from '../config/database';
+import pool from '../config/database';
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_key_123';
 
 export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { username, password } = req.body;
+    const { nama_lengkap, nim, email, prodi_id, password } = req.body;
 
-    if (!username || !password) {
-      res.status(400).json({ message: 'Username dan password wajib diisi' });
+    if (!nama_lengkap || !nim || !email || !password) {
+      res.status(400).json({ message: 'Semua field wajib diisi' });
       return;
     }
 
-    const [existingUsers] = await pool.query<RowDataPacket[]>('SELECT id FROM users WHERE username = ?', [username]);
+    // Check if email or nim already exists
+    const [existingUsers] = await pool.query<RowDataPacket[]>(
+      'SELECT id FROM users WHERE email = ? OR nim = ?',
+      [email, nim]
+    );
+    
     if (existingUsers.length > 0) {
-      res.status(409).json({ message: 'Username sudah digunakan' });
+      res.status(409).json({ message: 'Email atau NIM sudah terdaftar' });
       return;
     }
 
@@ -25,15 +30,17 @@ export const register = async (req: Request, res: Response, next: NextFunction):
     const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     const [result] = await pool.query<ResultSetHeader>(
-      'INSERT INTO users (username, password, role) VALUES (?, ?, ?)',
-      [username, hashedPassword, 'user']
+      'INSERT INTO users (nama_lengkap, nim, email, prodi_id, password, role) VALUES (?, ?, ?, ?, ?, ?)',
+      [nama_lengkap, nim, email, prodi_id || null, hashedPassword, 'user']
     );
 
     res.status(201).json({
       message: 'Registrasi berhasil',
       data: {
         id: result.insertId,
-        username,
+        nama_lengkap,
+        nim,
+        email,
         role: 'user'
       }
     });
@@ -44,17 +51,21 @@ export const register = async (req: Request, res: Response, next: NextFunction):
 
 export const login = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { username, password } = req.body;
+    const { username, password } = req.body; // username represents either email or NIM
 
     if (!username || !password) {
-      res.status(400).json({ message: 'Username dan password wajib diisi' });
+      res.status(400).json({ message: 'Email/NIM dan password wajib diisi' });
       return;
     }
 
-    const [users] = await pool.query<RowDataPacket[]>('SELECT * FROM users WHERE username = ?', [username]);
+    // Query user where email = username OR nim = username
+    const [users] = await pool.query<RowDataPacket[]>(
+      'SELECT * FROM users WHERE email = ? OR nim = ?',
+      [username, username]
+    );
     
     if (users.length === 0) {
-      res.status(401).json({ message: 'Username atau password salah' });
+      res.status(401).json({ message: 'Email/NIM atau password salah' });
       return;
     }
 
@@ -62,12 +73,18 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      res.status(401).json({ message: 'Username atau password salah' });
+      res.status(401).json({ message: 'Email/NIM atau password salah' });
       return;
     }
 
     const token = jwt.sign(
-      { id: user.id, username: user.username, role: user.role },
+      { 
+        id: user.id, 
+        nama_lengkap: user.nama_lengkap, 
+        nim: user.nim, 
+        email: user.email, 
+        role: user.role 
+      },
       JWT_SECRET,
       { expiresIn: '1d' }
     );
@@ -77,7 +94,9 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
       token,
       user: {
         id: user.id,
-        username: user.username,
+        nama_lengkap: user.nama_lengkap,
+        nim: user.nim,
+        email: user.email,
         role: user.role
       }
     });
