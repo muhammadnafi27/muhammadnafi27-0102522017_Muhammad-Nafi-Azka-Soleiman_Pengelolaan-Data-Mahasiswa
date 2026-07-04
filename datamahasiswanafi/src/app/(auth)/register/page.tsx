@@ -67,8 +67,9 @@ export default function RegisterPage() {
       setTimeout(() => {
         router.push('/login');
       }, 2000);
-    } catch (err: any) {
-      setError(err.message || 'Registrasi gagal, silakan coba lagi');
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Registrasi gagal, silakan coba lagi');
+    } finally {
       setIsSubmitting(false);
     }
   };

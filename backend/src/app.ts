@@ -32,7 +32,7 @@ app.use(cors({
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 // Serve static uploads
 // Dengan ini, URL foto http://localhost:3000/uploads/mahasiswa/nama-file.jpg bisa diakses
@@ -44,8 +44,13 @@ app.use('/api/prodi', prodiRoutes);
 app.use('/api/mahasiswa', mahasiswaRoutes);
 app.use('/api/users', usersRoutes);
 
+// 404 Route Not Found Handler
+app.use((req: Request, res: Response) => {
+  res.status(404).json({ success: false, message: 'Route tidak ditemukan' });
+});
+
 // Global Error Handler
-app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof multer.MulterError) {
     return res.status(400).json({ success: false, message: `Multer Error: ${err.message}` });
   }

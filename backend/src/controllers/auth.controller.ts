@@ -23,12 +23,12 @@ const loginSchema = z.object({
   password: z.string().min(1, "Password wajib diisi")
 });
 
-export const register = async (req: Request, res: Response): Promise<any> => {
+export const register = async (req: Request, res: Response): Promise<void | Response> => {
   try {
     const parsedData = registerSchema.parse(req.body);
     
     const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [parsedData.email]);
-    if ((existing as any[]).length > 0) {
+    if ((existing as unknown[]).length > 0) {
       return res.status(409).json({ success: false, message: "Email sudah digunakan" });
     }
 
@@ -40,7 +40,7 @@ export const register = async (req: Request, res: Response): Promise<any> => {
       [parsedData.name, parsedData.email, hashedPassword, 'viewer']
     );
 
-    const insertId = (result as any).insertId;
+    const insertId = (result as { insertId: number }).insertId;
     
     res.status(201).json({
       success: true,
@@ -56,21 +56,21 @@ export const register = async (req: Request, res: Response): Promise<any> => {
     });
   } catch (error) {
     if (error instanceof ZodError) {
-      return res.status(400).json({ success: false, message: (error as any).errors[0].message });
+      return res.status(400).json({ success: false, message: error.issues[0].message });
     }
     console.error(error);
     res.status(500).json({ success: false, message: "Terjadi kesalahan pada server" });
   }
 };
 
-export const login = async (req: Request, res: Response): Promise<any> => {
+export const login = async (req: Request, res: Response): Promise<void | Response> => {
   try {
     const parsedData = loginSchema.parse(req.body);
 
     const [users] = await pool.query('SELECT * FROM users WHERE email = ?', [parsedData.email]);
-    const user = (users as any[])[0];
+    const user = (users as Record<string, unknown>[])[0] as Record<string, unknown> | undefined;
 
-    if (!user) {
+    if (!user || typeof user.password !== 'string' || typeof user.id !== 'number' || typeof user.email !== 'string' || typeof user.role !== 'string') {
       return res.status(401).json({ success: false, message: "Email atau password salah" });
     }
 
@@ -86,7 +86,7 @@ export const login = async (req: Request, res: Response): Promise<any> => {
     };
 
     const token = jwt.sign(payload, process.env.JWT_SECRET as string, {
-      expiresIn: (process.env.JWT_EXPIRES_IN || '2h') as any
+      expiresIn: (process.env.JWT_EXPIRES_IN || '2h') as jwt.SignOptions['expiresIn']
     });
 
     res.json({
@@ -104,22 +104,24 @@ export const login = async (req: Request, res: Response): Promise<any> => {
     });
   } catch (error) {
     if (error instanceof ZodError) {
-      return res.status(400).json({ success: false, message: (error as any).errors[0].message });
+      return res.status(400).json({ success: false, message: error.issues[0].message });
     }
     console.error(error);
     res.status(500).json({ success: false, message: "Terjadi kesalahan pada server" });
   }
 };
 
-export const me = async (req: any, res: Response): Promise<any> => {
+import { AuthenticatedRequest } from '../middlewares/auth.middleware';
+
+export const me = async (req: AuthenticatedRequest, res: Response): Promise<void | Response> => {
   try {
-    const userId = req.user?.id || req.user?.sub;
+    const userId = req.user?.id;
     if (!userId) {
       return res.status(401).json({ success: false, message: "Token tidak valid atau telah kedaluwarsa" });
     }
 
     const [users] = await pool.query('SELECT id, name, email, role, created_at, updated_at FROM users WHERE id = ?', [userId]);
-    const user = (users as any[])[0];
+    const user = (users as Record<string, unknown>[])[0];
 
     if (!user) {
       return res.status(401).json({ success: false, message: "Token tidak valid atau telah kedaluwarsa" });
@@ -138,7 +140,7 @@ export const me = async (req: any, res: Response): Promise<any> => {
   }
 };
 
-export const logout = async (req: Request, res: Response): Promise<any> => {
+export const logout = async (req: Request, res: Response): Promise<void | Response> => {
   res.json({
     success: true,
     message: "Logout berhasil"

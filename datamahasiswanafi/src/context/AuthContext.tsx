@@ -8,7 +8,7 @@ interface AuthContextType {
   user: AuthUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (credentials: any) => Promise<void>;
+  login: (credentials: Record<string, unknown>) => Promise<void>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   canCreate: boolean;
@@ -31,7 +31,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
       
-      const response = await getMe();
+      const response = await getMe() as { user?: AuthUser };
       if (response && response.user) {
         setUser(response.user);
         setAuth(token, response.user);
@@ -56,8 +56,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     initAuth();
   }, []);
 
-  const login = async (credentials: any) => {
-    const response = await loginApi(credentials);
+  const login = async (credentials: Record<string, unknown>) => {
+    const response = await loginApi(credentials) as { token?: string; user?: AuthUser };
     if (response && response.token && response.user) {
       setAuth(response.token, response.user);
       setUser(response.user);

@@ -16,7 +16,7 @@ const createAdmin = async () => {
     }
 
     const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [adminEmail]);
-    if ((existing as any[]).length > 0) {
+    if ((existing as unknown[]).length > 0) {
       console.log(`Admin dengan email ${adminEmail} sudah ada.`);
       process.exit(0);
     }

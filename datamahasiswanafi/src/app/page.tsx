@@ -52,16 +52,6 @@ export default function Home() {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
-  const fetchProdis = async () => {
-    try {
-      const data = await getProdi();
-      setProdis(data);
-      setJumlahProdi(data.length);
-    } catch (error: any) {
-      console.error(error);
-    }
-  };
-
   const fetchMahasiswaData = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -72,8 +62,8 @@ export default function Home() {
       if (response.meta.totalAngkatan !== undefined) {
         setJumlahAngkatan(response.meta.totalAngkatan);
       }
-    } catch (error: any) {
-      addNotification(error.message || 'Gagal memuat data mahasiswa', 'error');
+    } catch (error) {
+      addNotification(error instanceof Error ? error.message : 'Gagal memuat data mahasiswa', 'error');
     } finally {
       setIsLoading(false);
       setIsSearching(false);
@@ -81,21 +71,42 @@ export default function Home() {
   }, [search, filterProdi, currentPage]);
 
   useEffect(() => {
+    let isMounted = true;
+    const fetchProdis = async () => {
+      try {
+        const data = await getProdi();
+        if (isMounted) {
+          setProdis(data);
+          setJumlahProdi(data.length);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
     fetchProdis();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Debounced search
   useEffect(() => {
-    if (search !== '') setIsSearching(true);
     const timeoutId = setTimeout(() => {
       fetchMahasiswaData();
     }, 500); // 500ms debounce
     return () => clearTimeout(timeoutId);
   }, [search, filterProdi, currentPage, fetchMahasiswaData]);
 
-  useEffect(() => {
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearch(e.target.value);
+    setIsSearching(true);
     setCurrentPage(1);
-  }, [search, filterProdi]);
+  };
+
+  const handleFilterChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setFilterProdi(e.target.value);
+    setCurrentPage(1);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -120,8 +131,8 @@ export default function Home() {
       }
       setEditingMahasiswa(null);
       fetchMahasiswaData();
-    } catch (error: any) {
-      addNotification(error.message || 'Terjadi kesalahan saat menyimpan data', 'error');
+    } catch (error) {
+      addNotification(error instanceof Error ? error.message : 'Terjadi kesalahan saat menyimpan data', 'error');
     }
   };
 
@@ -135,8 +146,8 @@ export default function Home() {
         await deleteMahasiswa(deletingId);
         addNotification('Data mahasiswa berhasil dihapus', 'delete');
         fetchMahasiswaData();
-      } catch (error: any) {
-        addNotification(error.message || 'Terjadi kesalahan saat menghapus data', 'error');
+      } catch (error) {
+        addNotification(error instanceof Error ? error.message : 'Terjadi kesalahan saat menghapus data', 'error');
       } finally {
         setDeletingId(null);
       }
@@ -227,7 +238,7 @@ export default function Home() {
                 type="text"
                 placeholder="Cari NIM atau Nama..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={handleSearchChange}
               />
             </div>
 
@@ -235,7 +246,7 @@ export default function Home() {
               <Filter size={18} className="input-icon" />
               <select
                 value={filterProdi}
-                onChange={(e) => setFilterProdi(e.target.value)}
+                onChange={handleFilterChange}
               >
                 <option value="">Semua Program Studi</option>
                 {prodis.map((p) => (
@@ -251,6 +262,7 @@ export default function Home() {
             {(canCreate || canUpdate) && (
               <div>
                 <MahasiswaForm
+                  key={editingMahasiswa ? `edit-${editingMahasiswa.id}` : 'new'}
                   selectedMahasiswa={editingMahasiswa}
                   prodis={prodis}
                   onSubmit={handleCreateOrUpdate}

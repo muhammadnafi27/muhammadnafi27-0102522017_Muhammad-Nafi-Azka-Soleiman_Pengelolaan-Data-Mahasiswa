@@ -34,8 +34,8 @@ export default function LoginPage() {
     try {
       await login({ email, password });
       router.push('/');
-    } catch (err: any) {
-      setError(err.message || 'Login gagal, silakan coba lagi');
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'Login gagal, silakan coba lagi');
     } finally {
       setIsSubmitting(false);
     }

@@ -12,19 +12,19 @@ interface NotificationProps {
 export default function Notification({ message, type, onClose }: NotificationProps) {
   const [isExiting, setIsExiting] = useState(false);
 
+  const handleClose = React.useCallback(() => {
+    setIsExiting(true);
+    setTimeout(() => {
+      onClose();
+    }, 300); // Wait for exit animation
+  }, [onClose]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       handleClose();
     }, 4000);
     return () => clearTimeout(timer);
-  }, []);
-
-  const handleClose = () => {
-    setIsExiting(true);
-    setTimeout(() => {
-      onClose();
-    }, 300); // Wait for exit animation
-  };
+  }, [handleClose]);
 
   const getNotificationConfig = () => {
     switch (type) {

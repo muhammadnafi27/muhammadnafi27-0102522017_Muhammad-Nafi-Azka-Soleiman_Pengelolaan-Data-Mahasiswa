@@ -17,7 +17,7 @@ export interface AuthenticatedRequest extends Request {
   user?: z.infer<typeof jwtPayloadSchema>;
 }
 
-export const authenticateJWT = (req: AuthenticatedRequest, res: Response, next: NextFunction): any => {
+export const authenticateJWT = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -45,7 +45,7 @@ export const authenticateJWT = (req: AuthenticatedRequest, res: Response, next: 
 };
 
 export const authorizeRoles = (...roles: string[]) => {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction): any => {
+  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     if (!req.user || !roles.includes(req.user.role)) {
       return res.status(403).json({ success: false, message: 'Anda tidak memiliki izin untuk mengakses fitur ini' });
     }

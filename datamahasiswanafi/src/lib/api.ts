@@ -119,30 +119,30 @@ export const deleteMahasiswa = async (id: number): Promise<void> => {
   await handleResponse<void>(res);
 };
 
-export const login = async (credentials: any): Promise<any> => {
+export const login = async (credentials: Record<string, unknown>): Promise<unknown> => {
   const res = await fetch(`${API_URL}/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(credentials)
   });
-  return handleResponse<any>(res);
+  return handleResponse<unknown>(res);
 };
 
-export const register = async (userData: any): Promise<any> => {
+export const register = async (userData: Record<string, unknown>): Promise<unknown> => {
   const res = await fetch(`${API_URL}/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(userData)
   });
-  return handleResponse<any>(res);
+  return handleResponse<unknown>(res);
 };
 
-export const getMe = async (): Promise<any> => {
+export const getMe = async (): Promise<unknown> => {
   const res = await fetchWithAuth(`${API_URL}/auth/me`);
-  return handleResponse<any>(res);
+  return handleResponse<unknown>(res);
 };
 
-export const logoutApi = async (): Promise<any> => {
+export const logoutApi = async (): Promise<unknown> => {
   const res = await fetchWithAuth(`${API_URL}/auth/logout`, { method: 'POST' });
-  return handleResponse<any>(res);
+  return handleResponse<unknown>(res);
 };

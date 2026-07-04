@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import pool from '../config/database';
 
-export const getMahasiswas = async (req: Request, res: Response) => {
+export const getMahasiswas = async (req: Request, res: Response): Promise<void | Response> => {
   try {
     const search = req.query.search ? String(req.query.search).trim() : '';
     const prodiId = req.query.prodi_id ? String(req.query.prodi_id) : '';
@@ -18,7 +18,7 @@ export const getMahasiswas = async (req: Request, res: Response) => {
       JOIN prodi p ON m.prodi_id = p.id
       WHERE (m.nim LIKE ? OR m.nama LIKE ?)
     `;
-    const params: any[] = [`%${search}%`, `%${search}%`];
+    const params: (string | number)[] = [`%${search}%`, `%${search}%`];
 
     if (prodiId) {
       baseQuery += ` AND m.prodi_id = ?`;
@@ -27,11 +27,11 @@ export const getMahasiswas = async (req: Request, res: Response) => {
 
     const countQuery = `SELECT COUNT(*) as total ${baseQuery}`;
     const [countRows] = await pool.query(countQuery, params);
-    const total = (countRows as any)[0].total;
+    const total = (countRows as { total: number }[])[0].total;
 
     const angkatanQuery = `SELECT COUNT(DISTINCT m.angkatan) as totalAngkatan ${baseQuery}`;
     const [angkatanRows] = await pool.query(angkatanQuery, params);
-    const totalAngkatan = (angkatanRows as any)[0].totalAngkatan;
+    const totalAngkatan = (angkatanRows as { totalAngkatan: number }[])[0].totalAngkatan;
 
     const dataQuery = `
       SELECT m.id, m.nim, m.nama, m.prodi_id, p.nama_prodi, m.angkatan, m.foto, m.created_at, m.updated_at
@@ -41,7 +41,7 @@ export const getMahasiswas = async (req: Request, res: Response) => {
     `;
     const [rows] = await pool.query(dataQuery, [...params, limit, offset]);
 
-    res.json({
+    return res.json({
       message: "Data mahasiswa berhasil diambil",
       meta: {
         page,
@@ -54,11 +54,11 @@ export const getMahasiswas = async (req: Request, res: Response) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Terjadi kesalahan pada server" });
+    return res.status(500).json({ message: "Terjadi kesalahan pada server" });
   }
 };
 
-export const createMahasiswa = async (req: any, res: Response): Promise<any> => {
+export const createMahasiswa = async (req: Request, res: Response): Promise<void | Response> => {
   const { nim, nama, prodi_id, angkatan } = req.body;
   const foto = req.file ? req.file.filename : null;
 
@@ -73,7 +73,7 @@ export const createMahasiswa = async (req: any, res: Response): Promise<any> => 
   try {
     // Cek persis duplikasi NIM
     const [existing] = await pool.query('SELECT * FROM mahasiswa WHERE nim = ?', [nimClean]);
-    if ((existing as any[]).length > 0) {
+    if ((existing as unknown[]).length > 0) {
       if (req.file) fs.unlinkSync(req.file.path);
       return res.status(400).json({ message: "NIM tidak boleh duplikat (NIM ini sudah terdaftar)" });
     }
@@ -83,30 +83,30 @@ export const createMahasiswa = async (req: any, res: Response): Promise<any> => 
       [nimClean, namaClean, Number(prodi_id), Number(angkatan), foto]
     );
 
-    const insertId = (result as any).insertId;
+    const insertId = (result as { insertId: number }).insertId;
     const [newData] = await pool.query(
       `SELECT m.id, m.nim, m.nama, m.prodi_id, p.nama_prodi, m.angkatan, m.foto, m.created_at, m.updated_at
        FROM mahasiswa m
        JOIN prodi p ON m.prodi_id = p.id
        WHERE m.id = ?`,
-      [insertId]
+       [insertId]
     );
 
-    res.status(201).json({
+    return res.status(201).json({
       message: "Data mahasiswa berhasil ditambahkan",
-      data: (newData as any[])[0]
+      data: (newData as Record<string, unknown>[])[0]
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error(error);
     if (req.file) fs.unlinkSync(req.file.path);
-    if (error.code === 'ER_DUP_ENTRY') {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'ER_DUP_ENTRY') {
       return res.status(400).json({ message: "NIM tidak boleh duplikat (NIM ini sudah terdaftar)" });
     }
-    res.status(500).json({ message: "Terjadi kesalahan pada server" });
+    return res.status(500).json({ message: "Terjadi kesalahan pada server" });
   }
 };
 
-export const updateMahasiswa = async (req: any, res: Response): Promise<any> => {
+export const updateMahasiswa = async (req: Request, res: Response): Promise<void | Response> => {
   const { id } = req.params;
   const { nim, nama, prodi_id, angkatan, removeFoto } = req.body;
   const newFoto = req.file ? req.file.filename : undefined;
@@ -121,20 +121,20 @@ export const updateMahasiswa = async (req: any, res: Response): Promise<any> => 
 
   try {
     const [current] = await pool.query('SELECT * FROM mahasiswa WHERE id = ?', [id]);
-    if ((current as any[]).length === 0) {
+    if ((current as unknown[]).length === 0) {
       if (req.file) fs.unlinkSync(req.file.path);
       return res.status(404).json({ message: "Data mahasiswa tidak ditemukan" });
     }
 
     const [existing] = await pool.query('SELECT * FROM mahasiswa WHERE nim = ? AND id != ?', [nimClean, id]);
-    if ((existing as any[]).length > 0) {
+    if ((existing as unknown[]).length > 0) {
       if (req.file) fs.unlinkSync(req.file.path);
       return res.status(400).json({ message: "NIM tidak boleh duplikat (NIM ini sudah digunakan mahasiswa lain)" });
     }
 
-    const oldFoto = (current as any[])[0].foto;
+    const oldFoto = (current as Record<string, unknown>[])[0].foto as string | null;
     let updateQuery = 'UPDATE mahasiswa SET nim = ?, nama = ?, prodi_id = ?, angkatan = ?';
-    const params: any[] = [nimClean, namaClean, Number(prodi_id), Number(angkatan)];
+    const params: (string | number | null)[] = [nimClean, namaClean, Number(prodi_id), Number(angkatan)];
 
     if (newFoto !== undefined) {
       updateQuery += ', foto = ?';
@@ -153,7 +153,7 @@ export const updateMahasiswa = async (req: any, res: Response): Promise<any> => 
     }
 
     updateQuery += ' WHERE id = ?';
-    params.push(id);
+    params.push(Number(id));
 
     await pool.query(updateQuery, params);
 
@@ -165,27 +165,27 @@ export const updateMahasiswa = async (req: any, res: Response): Promise<any> => 
       [id]
     );
 
-    res.json({
+    return res.json({
       message: "Data mahasiswa berhasil diperbarui",
-      data: (updatedData as any[])[0]
+      data: (updatedData as Record<string, unknown>[])[0]
     });
   } catch (error) {
     console.error(error);
     if (req.file) fs.unlinkSync(req.file.path);
-    res.status(500).json({ message: "Terjadi kesalahan pada server" });
+    return res.status(500).json({ message: "Terjadi kesalahan pada server" });
   }
 };
 
-export const deleteMahasiswa = async (req: Request, res: Response): Promise<any> => {
+export const deleteMahasiswa = async (req: Request, res: Response): Promise<void | Response> => {
   const { id } = req.params;
 
   try {
     const [current] = await pool.query('SELECT * FROM mahasiswa WHERE id = ?', [id]);
-    if ((current as any[]).length === 0) {
+    if ((current as unknown[]).length === 0) {
       return res.status(404).json({ message: "Data mahasiswa tidak ditemukan" });
     }
 
-    const oldFoto = (current as any[])[0].foto;
+    const oldFoto = (current as Record<string, unknown>[])[0].foto as string | null;
 
     await pool.query('DELETE FROM mahasiswa WHERE id = ?', [id]);
 
@@ -194,9 +194,9 @@ export const deleteMahasiswa = async (req: Request, res: Response): Promise<any>
       if (fs.existsSync(oldFotoPath)) fs.unlinkSync(oldFotoPath);
     }
 
-    res.json({ message: "Data mahasiswa berhasil dihapus" });
+    return res.json({ message: "Data mahasiswa berhasil dihapus" });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Terjadi kesalahan pada server" });
+    return res.status(500).json({ message: "Terjadi kesalahan pada server" });
   }
 };

@@ -1,8 +1,9 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import pool from '../config/database';
 import { z } from 'zod';
+import { AuthenticatedRequest } from '../middlewares/auth.middleware';
 
-export const getUsers = async (req: Request, res: Response): Promise<any> => {
+export const getUsers = async (req: AuthenticatedRequest, res: Response): Promise<void | Response> => {
   try {
     const [users] = await pool.query(
       'SELECT id, name, email, role, created_at FROM users ORDER BY created_at DESC'
@@ -11,18 +12,17 @@ export const getUsers = async (req: Request, res: Response): Promise<any> => {
       success: true,
       data: users
     });
-  } catch (error: any) {
+  } catch (error) {
     return res.status(500).json({ success: false, message: 'Gagal mengambil data user' });
   }
 };
 
-export const updateUserRole = async (req: Request, res: Response): Promise<any> => {
+export const updateUserRole = async (req: AuthenticatedRequest, res: Response): Promise<void | Response> => {
   try {
     const { id } = req.params;
     const { role } = req.body;
     
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const userReq = (req as any).user;
+    const userReq = req.user;
 
     if (!userReq) {
       return res.status(401).json({ success: false, message: 'Tidak terautentikasi' });
@@ -39,17 +39,17 @@ export const updateUserRole = async (req: Request, res: Response): Promise<any> 
       return res.status(400).json({ success: false, message: 'Role tidak valid' });
     }
 
-    const [result]: any = await pool.query(
+    const [result] = await pool.query(
       'UPDATE users SET role = ? WHERE id = ?',
       [role, id]
     );
 
-    if (result.affectedRows === 0) {
+    if ((result as { affectedRows: number }).affectedRows === 0) {
       return res.status(404).json({ success: false, message: 'User tidak ditemukan' });
     }
 
     return res.status(200).json({ success: true, message: 'Role user berhasil diubah' });
-  } catch (error: any) {
+  } catch (error) {
     return res.status(500).json({ success: false, message: 'Gagal mengubah role user' });
   }
 };

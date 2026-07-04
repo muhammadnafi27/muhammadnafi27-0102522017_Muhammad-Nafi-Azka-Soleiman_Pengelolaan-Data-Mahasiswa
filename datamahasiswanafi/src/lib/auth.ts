@@ -29,7 +29,7 @@ export const getAuthUser = (): AuthUser | null => {
     if (user) {
       try {
         return JSON.parse(user);
-      } catch (e) {
+      } catch {
         clearAuth();
         return null;
       }
