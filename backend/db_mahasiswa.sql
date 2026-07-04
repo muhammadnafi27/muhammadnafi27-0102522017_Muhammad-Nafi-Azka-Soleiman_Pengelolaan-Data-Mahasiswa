@@ -54,6 +54,18 @@ INSERT INTO mahasiswa (nim, nama, prodi_id, angkatan, foto) VALUES
 ('2401003', 'Andi Wijaya', 6, 2024, NULL),
 ('2401004', 'Citra Maharani', 1, 2024, NULL);
 
+-- 3. Tabel Users untuk Autentikasi
+CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(100) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  role ENUM('admin', 'operator', 'viewer') DEFAULT 'viewer',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_users_email (email)
+) ENGINE=InnoDB;
+
 -- Query debugging/pengecekan akhir
 SELECT m.id, m.nim, m.nama, p.nama_prodi, m.angkatan, m.foto, m.created_at, m.updated_at
 FROM mahasiswa m

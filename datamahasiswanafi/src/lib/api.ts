@@ -1,3 +1,5 @@
+import { getAuthToken, clearAuth } from './auth';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
 
 export interface Prodi {
@@ -32,8 +34,28 @@ export interface MahasiswaResponse {
   data: Mahasiswa[];
 }
 
+// Utility API helper with auth headers
+const fetchWithAuth = async (url: string, options: RequestInit = {}): Promise<Response> => {
+  const token = getAuthToken();
+  const headers = new Headers(options.headers || {});
+  
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+  
+  return fetch(url, { ...options, headers });
+};
+
 async function handleResponse<T>(response: Response): Promise<T> {
   const data = await response.json().catch(() => null);
+  
+  if (response.status === 401) {
+    clearAuth();
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
+  }
+
   if (!response.ok) {
     throw new Error(data?.message || 'Terjadi kesalahan pada server');
   }
@@ -41,7 +63,7 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 export const getProdi = async (): Promise<Prodi[]> => {
-  const res = await fetch(`${API_URL}/prodi`, { cache: 'no-store' });
+  const res = await fetchWithAuth(`${API_URL}/prodi`, { cache: 'no-store' });
   return handleResponse<Prodi[]>(res);
 };
 
@@ -58,7 +80,7 @@ export const getMahasiswa = async (
     limit: String(limit)
   });
   
-  const res = await fetch(`${API_URL}/mahasiswa?${queryParams.toString()}`, { cache: 'no-store' });
+  const res = await fetchWithAuth(`${API_URL}/mahasiswa?${queryParams.toString()}`, { cache: 'no-store' });
   const data = await res.json().catch(() => null);
   if (!res.ok) {
     throw new Error(data?.message || 'Terjadi kesalahan pada server');
@@ -67,7 +89,7 @@ export const getMahasiswa = async (
 };
 
 export const createMahasiswa = async (formData: FormData): Promise<Mahasiswa> => {
-  const res = await fetch(`${API_URL}/mahasiswa`, {
+  const res = await fetchWithAuth(`${API_URL}/mahasiswa`, {
     method: 'POST',
     body: formData, // Jangan set Content-Type secara manual agar browser menentukan boundary secara otomatis
   });
@@ -75,7 +97,7 @@ export const createMahasiswa = async (formData: FormData): Promise<Mahasiswa> =>
 };
 
 export const updateMahasiswa = async (id: number, formData: FormData): Promise<Mahasiswa> => {
-  const res = await fetch(`${API_URL}/mahasiswa/${id}`, {
+  const res = await fetchWithAuth(`${API_URL}/mahasiswa/${id}`, {
     method: 'PUT',
     body: formData,
   });
@@ -83,7 +105,7 @@ export const updateMahasiswa = async (id: number, formData: FormData): Promise<M
 };
 
 export const deleteMahasiswa = async (id: number): Promise<void> => {
-  const res = await fetch(`${API_URL}/mahasiswa/${id}`, {
+  const res = await fetchWithAuth(`${API_URL}/mahasiswa/${id}`, {
     method: 'DELETE',
   });
   await handleResponse<void>(res);
