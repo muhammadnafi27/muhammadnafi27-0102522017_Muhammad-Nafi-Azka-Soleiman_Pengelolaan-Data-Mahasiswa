@@ -9,6 +9,7 @@ import { ZodError } from 'zod';
 import authRoutes from './routes/auth.route';
 import prodiRoutes from './routes/prodi.route';
 import mahasiswaRoutes from './routes/mahasiswa.route';
+import usersRoutes from './routes/users.route';
 
 const app: Application = express();
 
@@ -41,14 +42,15 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use('/api/auth', authRoutes);
 app.use('/api/prodi', prodiRoutes);
 app.use('/api/mahasiswa', mahasiswaRoutes);
+app.use('/api/users', usersRoutes);
 
 // Global Error Handler
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof multer.MulterError) {
-    return res.status(400).json({ message: `Multer Error: ${err.message}` });
+    return res.status(400).json({ success: false, message: `Multer Error: ${err.message}` });
   }
   if (err) {
-    return res.status(500).json({ message: err.message || 'Internal Server Error' });
+    return res.status(500).json({ success: false, message: err.message || 'Internal Server Error' });
   }
   next();
 });

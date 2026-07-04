@@ -15,6 +15,10 @@ interface NotificationState {
   type: NotificationType;
 }
 
+import { useAuth } from '../context/AuthContext';
+import ProtectedRoute from '../components/ProtectedRoute';
+import { LogOut, User } from 'lucide-react';
+
 export default function Home() {
   const [mahasiswas, setMahasiswas] = useState<Mahasiswa[]>([]);
   const [prodis, setProdis] = useState<Prodi[]>([]);
@@ -36,6 +40,8 @@ export default function Home() {
   // Stats
   const [jumlahProdi, setJumlahProdi] = useState(0);
   const [jumlahAngkatan, setJumlahAngkatan] = useState(0);
+
+  const { user, logout, canCreate, canUpdate } = useAuth();
 
   const addNotification = (message: string, type: NotificationType) => {
     const id = Date.now();
@@ -138,115 +144,135 @@ export default function Home() {
   };
 
   return (
-    <div className="app">
-      {notifications.map((notif) => (
-        <Notification
-          key={notif.id}
-          message={notif.message}
-          type={notif.type}
-          onClose={() => removeNotification(notif.id)}
+    <ProtectedRoute>
+      <div className="app">
+        {notifications.map((notif) => (
+          <Notification
+            key={notif.id}
+            message={notif.message}
+            type={notif.type}
+            onClose={() => removeNotification(notif.id)}
+          />
+        ))}
+
+        <ConfirmModal
+          isOpen={deletingId !== null}
+          onConfirm={confirmDelete}
+          onCancel={() => setDeletingId(null)}
         />
-      ))}
 
-      <ConfirmModal
-        isOpen={deletingId !== null}
-        onConfirm={confirmDelete}
-        onCancel={() => setDeletingId(null)}
-      />
-
-      <div className={`header-wrapper ${isScrolled ? 'scrolled' : ''}`}>
-        <header className="dynamic-island">
-          <div className="brand">
-            <div className="brand-icon-box">
-              <GraduationCap size={42} className="brand-icon" />
-            </div>
-            <div className="brand-text">
-              <h1>Pengelolaan Data Mahasiswa UAI</h1>
-              <p className="subtitle">
-                Sistem akademik satu halaman terpadu dengan analisis database MySQL.
-              </p>
-            </div>
-          </div>
-          <div className="island-badge">
-            <GraduationCap size={16} />
-            <span>{totalItems} Mahasiswa</span>
-          </div>
-        </header>
-      </div>
-
-      <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem 2.5rem 2rem' }}>
-        <DashboardCard 
-          totalMahasiswa={totalItems} 
-          jumlahProdi={jumlahProdi} 
-          jumlahAngkatan={jumlahAngkatan} 
-        />
-        
-        {/* Search and Filter Controls */}
-        <div className="search-filter-container">
-          <div className="input-wrapper" style={{ flex: 1, minWidth: '250px' }}>
-            <Search size={18} className="input-icon" style={{ opacity: isSearching ? 0.3 : 1 }} />
-            {isSearching && (
-              <div 
-                style={{ 
-                  position: 'absolute', 
-                  left: '1.25rem',
-                  width: '18px', 
-                  height: '18px',
-                  border: '2px solid rgba(59, 130, 246, 0.3)',
-                  borderTopColor: '#3b82f6',
-                  borderRadius: '50%',
-                  animation: 'spin 1s linear infinite'
-                }} 
-              />
+        <div className={`header-wrapper ${isScrolled ? 'scrolled' : ''}`}>
+          <div className="w-full max-w-7xl mx-auto px-4 py-2 flex justify-end items-center gap-4 text-sm">
+            {user && (
+              <div className="flex items-center gap-2 text-gray-600 bg-white/50 px-3 py-1.5 rounded-full backdrop-blur-sm border border-gray-200/50">
+                <User size={16} />
+                <span className="font-medium text-gray-800">{user.name}</span>
+                <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-xs font-semibold uppercase tracking-wider">{user.role}</span>
+              </div>
             )}
-            <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { to { transform: rotate(360deg); } }` }} />
-            <input
-              type="text"
-              placeholder="Cari NIM atau Nama..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-
-          <div className="input-wrapper" style={{ minWidth: '220px' }}>
-            <Filter size={18} className="input-icon" />
-            <select
-              value={filterProdi}
-              onChange={(e) => setFilterProdi(e.target.value)}
+            <button
+              onClick={logout}
+              className="flex items-center gap-2 text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-full transition-colors border border-transparent hover:border-red-100"
             >
-              <option value="">Semua Program Studi</option>
-              {prodis.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.nama_prodi}
-                </option>
-              ))}
-            </select>
+              <LogOut size={16} />
+              <span className="font-medium">Logout</span>
+            </button>
           </div>
+          <header className="dynamic-island">
+            <div className="brand">
+              <div className="brand-icon-box">
+                <GraduationCap size={42} className="brand-icon" />
+              </div>
+              <div className="brand-text">
+                <h1>Pengelolaan Data Mahasiswa UAI</h1>
+                <p className="subtitle">
+                  Sistem akademik satu halaman terpadu dengan analisis database MySQL.
+                </p>
+              </div>
+            </div>
+            <div className="island-badge">
+              <GraduationCap size={16} />
+              <span>{totalItems} Mahasiswa</span>
+            </div>
+          </header>
         </div>
-        
-        <div className="content-grid">
-          <div>
-            <MahasiswaForm
-              selectedMahasiswa={editingMahasiswa}
-              prodis={prodis}
-              onSubmit={handleCreateOrUpdate}
-              onCancelEdit={() => setEditingMahasiswa(null)}
-            />
+
+        <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '0 2rem 2.5rem 2rem' }}>
+          <DashboardCard 
+            totalMahasiswa={totalItems} 
+            jumlahProdi={jumlahProdi} 
+            jumlahAngkatan={jumlahAngkatan} 
+          />
+          
+          {/* Search and Filter Controls */}
+          <div className="search-filter-container">
+            <div className="input-wrapper" style={{ flex: 1, minWidth: '250px' }}>
+              <Search size={18} className="input-icon" style={{ opacity: isSearching ? 0.3 : 1 }} />
+              {isSearching && (
+                <div 
+                  style={{ 
+                    position: 'absolute', 
+                    left: '1.25rem',
+                    width: '18px', 
+                    height: '18px',
+                    border: '2px solid rgba(59, 130, 246, 0.3)',
+                    borderTopColor: '#3b82f6',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                  }} 
+                />
+              )}
+              <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { to { transform: rotate(360deg); } }` }} />
+              <input
+                type="text"
+                placeholder="Cari NIM atau Nama..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+
+            <div className="input-wrapper" style={{ minWidth: '220px' }}>
+              <Filter size={18} className="input-icon" />
+              <select
+                value={filterProdi}
+                onChange={(e) => setFilterProdi(e.target.value)}
+              >
+                <option value="">Semua Program Studi</option>
+                {prodis.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.nama_prodi}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
-          <div>
-            <MahasiswaTable
-              data={mahasiswas}
-              isLoading={isLoading}
-              onEdit={setEditingMahasiswa}
-              onDelete={handleDelete}
-              currentPage={currentPage}
-              totalPages={totalPage}
-              totalItems={totalItems}
-              onPageChange={setCurrentPage}
-            />
+          
+          <div className="content-grid">
+            {(canCreate || canUpdate) && (
+              <div>
+                <MahasiswaForm
+                  selectedMahasiswa={editingMahasiswa}
+                  prodis={prodis}
+                  onSubmit={handleCreateOrUpdate}
+                  onCancelEdit={() => setEditingMahasiswa(null)}
+                />
+              </div>
+            )}
+            <div style={!canCreate && !canUpdate ? { gridColumn: '1 / -1' } : {}}>
+              <MahasiswaTable
+                data={mahasiswas}
+                isLoading={isLoading}
+                onEdit={setEditingMahasiswa}
+                onDelete={handleDelete}
+                currentPage={currentPage}
+                totalPages={totalPage}
+                totalItems={totalItems}
+                onPageChange={setCurrentPage}
+              />
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 }

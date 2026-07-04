@@ -82,6 +82,14 @@ export const getMahasiswa = async (
   
   const res = await fetchWithAuth(`${API_URL}/mahasiswa?${queryParams.toString()}`, { cache: 'no-store' });
   const data = await res.json().catch(() => null);
+  
+  if (res.status === 401) {
+    clearAuth();
+    if (typeof window !== 'undefined') {
+      window.location.href = '/login';
+    }
+  }
+  
   if (!res.ok) {
     throw new Error(data?.message || 'Terjadi kesalahan pada server');
   }
@@ -109,4 +117,32 @@ export const deleteMahasiswa = async (id: number): Promise<void> => {
     method: 'DELETE',
   });
   await handleResponse<void>(res);
+};
+
+export const login = async (credentials: any): Promise<any> => {
+  const res = await fetch(`${API_URL}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(credentials)
+  });
+  return handleResponse<any>(res);
+};
+
+export const register = async (userData: any): Promise<any> => {
+  const res = await fetch(`${API_URL}/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(userData)
+  });
+  return handleResponse<any>(res);
+};
+
+export const getMe = async (): Promise<any> => {
+  const res = await fetchWithAuth(`${API_URL}/auth/me`);
+  return handleResponse<any>(res);
+};
+
+export const logoutApi = async (): Promise<any> => {
+  const res = await fetchWithAuth(`${API_URL}/auth/logout`, { method: 'POST' });
+  return handleResponse<any>(res);
 };

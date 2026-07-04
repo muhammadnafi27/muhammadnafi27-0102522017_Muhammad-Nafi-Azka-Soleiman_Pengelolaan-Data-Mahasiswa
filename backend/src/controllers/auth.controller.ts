@@ -5,13 +5,21 @@ import { z, ZodError } from 'zod';
 import pool from '../config/database';
 
 const registerSchema = z.object({
-  name: z.string().min(3, "Nama minimal 3 karakter").max(100, "Nama maksimal 100 karakter"),
-  email: z.string().email("Format email tidak valid").max(100),
-  password: z.string().min(6, "Password minimal 6 karakter").max(255)
+  name: z.string().trim().min(3, "Nama minimal 3 karakter").max(100, "Nama maksimal 100 karakter"),
+  email: z.string().trim().toLowerCase().email("Format email tidak valid").max(100),
+  password: z.string()
+    .min(8, "Password minimal 8 karakter")
+    .max(72, "Password maksimal 72 karakter")
+    .regex(/[a-zA-Z]/, "Password harus memiliki minimal satu huruf")
+    .regex(/[0-9]/, "Password harus memiliki minimal satu angka"),
+  confirmPassword: z.string().optional()
+}).refine(data => !data.confirmPassword || data.password === data.confirmPassword, {
+  message: "Password dan konfirmasi password tidak sama",
+  path: ["confirmPassword"]
 });
 
 const loginSchema = z.object({
-  email: z.string().email("Format email tidak valid"),
+  email: z.string().trim().toLowerCase().email("Format email tidak valid"),
   password: z.string().min(1, "Password wajib diisi")
 });
 
@@ -21,10 +29,11 @@ export const register = async (req: Request, res: Response): Promise<any> => {
     
     const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [parsedData.email]);
     if ((existing as any[]).length > 0) {
-      return res.status(400).json({ message: "Email sudah terdaftar" });
+      return res.status(409).json({ success: false, message: "Email sudah digunakan" });
     }
 
-    const hashedPassword = await bcrypt.hash(parsedData.password, 10);
+    const saltRounds = parseInt(process.env.SALT_ROUNDS || '10', 10);
+    const hashedPassword = await bcrypt.hash(parsedData.password, saltRounds);
 
     const [result] = await pool.query(
       'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
@@ -32,21 +41,25 @@ export const register = async (req: Request, res: Response): Promise<any> => {
     );
 
     const insertId = (result as any).insertId;
-    const [newData] = await pool.query(
-      'SELECT id, name, email, role, created_at, updated_at FROM users WHERE id = ?',
-      [insertId]
-    );
-
+    
     res.status(201).json({
+      success: true,
       message: "Registrasi berhasil",
-      data: (newData as any[])[0]
+      data: {
+        user: {
+          id: insertId,
+          name: parsedData.name,
+          email: parsedData.email,
+          role: 'viewer'
+        }
+      }
     });
   } catch (error) {
     if (error instanceof ZodError) {
-      return res.status(400).json({ message: (error as any).errors[0].message });
+      return res.status(400).json({ success: false, message: (error as any).errors[0].message });
     }
     console.error(error);
-    res.status(500).json({ message: "Terjadi kesalahan pada server" });
+    res.status(500).json({ success: false, message: "Terjadi kesalahan pada server" });
   }
 };
 
@@ -58,16 +71,16 @@ export const login = async (req: Request, res: Response): Promise<any> => {
     const user = (users as any[])[0];
 
     if (!user) {
-      return res.status(401).json({ message: "Email atau password salah" });
+      return res.status(401).json({ success: false, message: "Email atau password salah" });
     }
 
     const isMatch = await bcrypt.compare(parsedData.password, user.password);
     if (!isMatch) {
-      return res.status(401).json({ message: "Email atau password salah" });
+      return res.status(401).json({ success: false, message: "Email atau password salah" });
     }
 
     const payload = {
-      id: user.id,
+      sub: user.id,
       email: user.email,
       role: user.role
     };
@@ -77,17 +90,57 @@ export const login = async (req: Request, res: Response): Promise<any> => {
     });
 
     res.json({
+      success: true,
       message: "Login berhasil",
       data: {
         token,
-        user: payload
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        }
       }
     });
   } catch (error) {
     if (error instanceof ZodError) {
-      return res.status(400).json({ message: (error as any).errors[0].message });
+      return res.status(400).json({ success: false, message: (error as any).errors[0].message });
     }
     console.error(error);
-    res.status(500).json({ message: "Terjadi kesalahan pada server" });
+    res.status(500).json({ success: false, message: "Terjadi kesalahan pada server" });
   }
+};
+
+export const me = async (req: any, res: Response): Promise<any> => {
+  try {
+    const userId = req.user?.id || req.user?.sub;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Token tidak valid atau telah kedaluwarsa" });
+    }
+
+    const [users] = await pool.query('SELECT id, name, email, role, created_at, updated_at FROM users WHERE id = ?', [userId]);
+    const user = (users as any[])[0];
+
+    if (!user) {
+      return res.status(401).json({ success: false, message: "Token tidak valid atau telah kedaluwarsa" });
+    }
+
+    res.json({
+      success: true,
+      message: "Data user berhasil diambil",
+      data: {
+        user
+      }
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Terjadi kesalahan pada server" });
+  }
+};
+
+export const logout = async (req: Request, res: Response): Promise<any> => {
+  res.json({
+    success: true,
+    message: "Logout berhasil"
+  });
 };

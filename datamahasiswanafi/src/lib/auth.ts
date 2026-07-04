@@ -1,9 +1,10 @@
 // Utility functions for auth token management
-const TOKEN_KEY = 'auth_token';
-const USER_KEY = 'auth_user';
+const TOKEN_KEY = 'mahasiswa_auth_token';
+const USER_KEY = 'mahasiswa_auth_user';
 
 export interface AuthUser {
   id: number;
+  name: string;
   email: string;
   role: string;
 }
@@ -25,7 +26,14 @@ export const getAuthToken = (): string | null => {
 export const getAuthUser = (): AuthUser | null => {
   if (typeof window !== 'undefined') {
     const user = localStorage.getItem(USER_KEY);
-    return user ? JSON.parse(user) : null;
+    if (user) {
+      try {
+        return JSON.parse(user);
+      } catch (e) {
+        clearAuth();
+        return null;
+      }
+    }
   }
   return null;
 };
@@ -40,3 +48,13 @@ export const clearAuth = () => {
 export const isAuthenticated = (): boolean => {
   return !!getAuthToken();
 };
+
+export const hasRole = (allowedRoles: string[]): boolean => {
+  const user = getAuthUser();
+  return !!user && allowedRoles.includes(user.role);
+};
+
+export const canCreateMahasiswa = (): boolean => hasRole(['admin', 'operator']);
+export const canUpdateMahasiswa = (): boolean => hasRole(['admin', 'operator']);
+export const canDeleteMahasiswa = (): boolean => hasRole(['admin']);
+export const canManageUsers = (): boolean => hasRole(['admin']);
