@@ -909,12 +909,11 @@ tr:hover td {
   flex-direction: column;
   justify-content: center;
   position: relative;
-  background-color: #080c14;
-  background-image: 
-    linear-gradient(rgba(59, 130, 246, 0.03) 1px, transparent 1px), 
-    linear-gradient(90deg, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
-  background-size: 20px 20px;
-  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  /* Premium blue glassmorphism background */
+  background: linear-gradient(135deg, rgba(29, 78, 216, 0.25) 0%, rgba(15, 23, 42, 0.8) 100%);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border-right: 1px solid rgba(59, 130, 246, 0.15);
 }
 
 .auth-left-container {
@@ -925,16 +924,36 @@ tr:hover td {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  position: relative;
+  z-index: 2;
 }
 
 .auth-left::before {
   content: '';
   position: absolute;
-  top: 15%;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Faint premium space grid overlay */
+  background-image: 
+    linear-gradient(rgba(59, 130, 246, 0.02) 1px, transparent 1px), 
+    linear-gradient(90deg, rgba(59, 130, 246, 0.02) 1px, transparent 1px);
+  background-size: 20px 20px;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Glowing background blob behind the glass */
+.auth-left::after {
+  content: '';
+  position: absolute;
+  top: 20%;
   left: 10%;
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(circle, rgba(59, 130, 246, 0.12) 0%, transparent 70%);
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, rgba(59, 130, 246, 0.3) 0%, rgba(99, 102, 241, 0.05) 50%, transparent 70%);
+  filter: blur(40px);
   z-index: 0;
   pointer-events: none;
 }
@@ -943,77 +962,73 @@ tr:hover td {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 58px;
-  height: 58px;
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(37, 99, 235, 0.4);
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border-radius: 18px;
+  box-shadow: 0 8px 30px rgba(59, 130, 246, 0.5);
   margin-bottom: 2rem;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .auth-left-content {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   margin-top: 1.5rem;
   margin-bottom: 2.5rem;
 }
 
 .auth-left-title {
-  font-size: 2.5rem;
+  font-size: 2.75rem;
   font-weight: 800;
-  line-height: 1.2;
+  line-height: 1.15;
   color: #ffffff;
   margin-bottom: 1.25rem;
   letter-spacing: -0.02em;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
 }
 
 .auth-left-subtitle {
-  font-size: 1rem;
-  color: #64748b;
+  font-size: 1.05rem;
+  color: #94a3b8;
   line-height: 1.6;
 }
 
 .auth-features-list {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1.75rem;
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .auth-feature-item {
   display: flex;
   align-items: center;
-  gap: 1.25rem;
+  gap: 1.5rem;
 }
 
 .auth-feature-icon-box {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-}
-
-.auth-feature-icon-box.blue {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  /* Glowing blue glass icon box */
   color: #3b82f6;
-  border: 1px solid rgba(59, 130, 246, 0.25);
+  border: 1px solid rgba(59, 130, 246, 0.3);
   background: rgba(59, 130, 246, 0.08);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.auth-feature-icon-box.green {
-  color: #10b981;
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  background: rgba(16, 185, 129, 0.08);
-}
-
-.auth-feature-icon-box.purple {
-  color: #8b5cf6;
-  border: 1px solid rgba(139, 92, 246, 0.25);
-  background: rgba(139, 92, 246, 0.08);
+.auth-feature-icon-box:hover {
+  background: rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 20px rgba(59, 130, 246, 0.25);
+  transform: translateY(-2px);
 }
 
 .auth-feature-text h4 {
