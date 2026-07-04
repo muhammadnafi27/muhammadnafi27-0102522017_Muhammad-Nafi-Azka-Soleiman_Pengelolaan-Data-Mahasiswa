@@ -1,4 +1,5 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+/* eslint-disable @next/next/no-img-element, react-hooks/set-state-in-effect */
 import { Mahasiswa, Prodi } from '../lib/api';
 import { IdCard, User, BookOpen, Calendar, Save, RotateCcw, UploadCloud, X } from 'lucide-react';
 
@@ -10,19 +11,42 @@ interface MahasiswaFormProps {
 }
 
 export default function MahasiswaForm({ selectedMahasiswa, prodis, onSubmit, onCancelEdit }: MahasiswaFormProps) {
-  const [nim, setNim] = useState(selectedMahasiswa ? selectedMahasiswa.nim : '');
-  const [nama, setNama] = useState(selectedMahasiswa ? selectedMahasiswa.nama : '');
-  const [prodiId, setProdiId] = useState(selectedMahasiswa ? String(selectedMahasiswa.prodi_id) : '');
-  const [angkatan, setAngkatan] = useState(selectedMahasiswa ? selectedMahasiswa.angkatan : new Date().getFullYear());
+  const [nim, setNim] = useState('');
+  const [nama, setNama] = useState('');
+  const [prodiId, setProdiId] = useState('');
+  const [angkatan, setAngkatan] = useState(new Date().getFullYear());
   const [foto, setFoto] = useState<File | null>(null);
-  const [fotoPreview, setFotoPreview] = useState<string | null>(
-    selectedMahasiswa && selectedMahasiswa.foto 
-      ? `${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'}/uploads/mahasiswa/${selectedMahasiswa.foto}`
-      : null
-  );
+  const [fotoPreview, setFotoPreview] = useState<string | null>(null);
   const [removeExistingFoto, setRemoveExistingFoto] = useState(false);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (selectedMahasiswa) {
+      setNim(selectedMahasiswa.nim);
+      setNama(selectedMahasiswa.nama);
+      setProdiId(String(selectedMahasiswa.prodi_id));
+      setAngkatan(selectedMahasiswa.angkatan);
+      setFoto(null);
+      setRemoveExistingFoto(false);
+      if (selectedMahasiswa.foto) {
+        setFotoPreview(`${process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000'}/uploads/mahasiswa/${selectedMahasiswa.foto}`);
+      } else {
+        setFotoPreview(null);
+      }
+    } else {
+      setNim('');
+      setNama('');
+      setProdiId('');
+      setAngkatan(new Date().getFullYear());
+      setFoto(null);
+      setFotoPreview(null);
+      setRemoveExistingFoto(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  }, [selectedMahasiswa]);
 
   const handleRemoveFoto = (e: React.MouseEvent) => {
     e.stopPropagation();

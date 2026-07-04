@@ -1,6 +1,11 @@
-import { getAuthToken, clearAuth } from './auth';
+import { getToken } from './auth';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+
+const getAuthHeaders = (): HeadersInit => {
+  const token = getToken();
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+};
 
 export interface Prodi {
   id: number;
@@ -34,28 +39,8 @@ export interface MahasiswaResponse {
   data: Mahasiswa[];
 }
 
-// Utility API helper with auth headers
-const fetchWithAuth = async (url: string, options: RequestInit = {}): Promise<Response> => {
-  const token = getAuthToken();
-  const headers = new Headers(options.headers || {});
-  
-  if (token) {
-    headers.set('Authorization', `Bearer ${token}`);
-  }
-  
-  return fetch(url, { ...options, headers });
-};
-
 async function handleResponse<T>(response: Response): Promise<T> {
   const data = await response.json().catch(() => null);
-  
-  if (response.status === 401) {
-    clearAuth();
-    if (typeof window !== 'undefined') {
-      window.location.href = '/login';
-    }
-  }
-
   if (!response.ok) {
     throw new Error(data?.message || 'Terjadi kesalahan pada server');
   }
@@ -63,7 +48,10 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 export const getProdi = async (): Promise<Prodi[]> => {
-  const res = await fetchWithAuth(`${API_URL}/prodi`, { cache: 'no-store' });
+  const res = await fetch(`${API_URL}/prodi`, { 
+    cache: 'no-store',
+    headers: getAuthHeaders()
+  });
   return handleResponse<Prodi[]>(res);
 };
 
@@ -80,16 +68,11 @@ export const getMahasiswa = async (
     limit: String(limit)
   });
   
-  const res = await fetchWithAuth(`${API_URL}/mahasiswa?${queryParams.toString()}`, { cache: 'no-store' });
+  const res = await fetch(`${API_URL}/mahasiswa?${queryParams.toString()}`, { 
+    cache: 'no-store',
+    headers: getAuthHeaders()
+  });
   const data = await res.json().catch(() => null);
-  
-  if (res.status === 401) {
-    clearAuth();
-    if (typeof window !== 'undefined') {
-      window.location.href = '/login';
-    }
-  }
-  
   if (!res.ok) {
     throw new Error(data?.message || 'Terjadi kesalahan pada server');
   }
@@ -97,52 +80,27 @@ export const getMahasiswa = async (
 };
 
 export const createMahasiswa = async (formData: FormData): Promise<Mahasiswa> => {
-  const res = await fetchWithAuth(`${API_URL}/mahasiswa`, {
+  const res = await fetch(`${API_URL}/mahasiswa`, {
     method: 'POST',
+    headers: getAuthHeaders(),
     body: formData, // Jangan set Content-Type secara manual agar browser menentukan boundary secara otomatis
   });
   return handleResponse<Mahasiswa>(res);
 };
 
 export const updateMahasiswa = async (id: number, formData: FormData): Promise<Mahasiswa> => {
-  const res = await fetchWithAuth(`${API_URL}/mahasiswa/${id}`, {
+  const res = await fetch(`${API_URL}/mahasiswa/${id}`, {
     method: 'PUT',
+    headers: getAuthHeaders(),
     body: formData,
   });
   return handleResponse<Mahasiswa>(res);
 };
 
 export const deleteMahasiswa = async (id: number): Promise<void> => {
-  const res = await fetchWithAuth(`${API_URL}/mahasiswa/${id}`, {
+  const res = await fetch(`${API_URL}/mahasiswa/${id}`, {
     method: 'DELETE',
+    headers: getAuthHeaders(),
   });
   await handleResponse<void>(res);
-};
-
-export const login = async (credentials: Record<string, unknown>): Promise<unknown> => {
-  const res = await fetch(`${API_URL}/auth/login`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(credentials)
-  });
-  return handleResponse<unknown>(res);
-};
-
-export const register = async (userData: Record<string, unknown>): Promise<unknown> => {
-  const res = await fetch(`${API_URL}/auth/register`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(userData)
-  });
-  return handleResponse<unknown>(res);
-};
-
-export const getMe = async (): Promise<unknown> => {
-  const res = await fetchWithAuth(`${API_URL}/auth/me`);
-  return handleResponse<unknown>(res);
-};
-
-export const logoutApi = async (): Promise<unknown> => {
-  const res = await fetchWithAuth(`${API_URL}/auth/logout`, { method: 'POST' });
-  return handleResponse<unknown>(res);
 };

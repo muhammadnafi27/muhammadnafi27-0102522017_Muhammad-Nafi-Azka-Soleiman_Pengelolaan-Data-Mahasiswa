@@ -1,116 +1,121 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { setToken, setUser } from '@/lib/auth';
+import { GraduationCap, LogIn, User, Lock } from 'lucide-react';
 import Link from 'next/link';
-import { useAuth } from '@/context/AuthContext';
-import { Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
+  const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const { login, isAuthenticated, isLoading } = useAuth();
+  const [errorMsg, setErrorMsg] = useState('');
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    if (!isLoading && isAuthenticated) {
-      router.push('/');
-    }
-  }, [isLoading, isAuthenticated, router]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setErrorMsg('');
+    setLoading(true);
 
-    if (!email || !password) {
-      setError('Email dan password wajib diisi');
-      return;
-    }
-
-    setIsSubmitting(true);
     try {
-      await login({ email, password });
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || 'Login gagal');
+      }
+
+      setToken(data.token);
+      setUser(data.user);
       router.push('/');
-    } catch (error) {
-      setError(error instanceof Error ? error.message : 'Login gagal, silakan coba lagi');
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      setErrorMsg(msg);
     } finally {
-      setIsSubmitting(false);
+      setLoading(false);
     }
   };
 
-  if (isLoading || isAuthenticated) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-gray-50">
-        <Loader2 className="h-10 w-10 animate-spin text-blue-600" />
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
-      <div className="max-w-md w-full bg-white rounded-xl shadow-lg p-8">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">Login Sistem</h2>
-        <p className="text-center text-gray-600 mb-6">Silakan masuk ke akun Anda</p>
-        
-        {error && (
-          <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-lg border border-red-100">
-            {error}
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '2rem'
+    }}>
+      <div className="card" style={{ maxWidth: '400px', width: '100%' }}>
+        <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+          <div className="brand-icon-box" style={{ margin: '0 auto 1rem auto' }}>
+            <GraduationCap size={42} className="brand-icon" />
+          </div>
+          <h2 style={{ color: '#fff', fontSize: '1.5rem', fontWeight: 600 }}>Login Portal</h2>
+          <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+            Silakan masuk untuk mengelola data
+          </p>
+        </div>
+
+        {errorMsg && (
+          <div style={{
+            backgroundColor: 'rgba(239, 68, 68, 0.15)',
+            borderLeft: '4px solid #ef4444',
+            color: '#fca5a5',
+            padding: '0.75rem 1rem',
+            borderRadius: '8px',
+            marginBottom: '1.5rem',
+            fontSize: '0.9rem'
+          }}>
+            {errorMsg}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="email">Email</label>
-            <input 
-              id="email"
-              name="email"
-              type="email" 
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" 
-              placeholder="admin@example.com" 
-              disabled={isSubmitting}
-            />
+        <form onSubmit={handleLogin}>
+          <div className="form-group">
+            <label>Username</label>
+            <div className="input-wrapper">
+              <User size={18} className="input-icon" />
+              <input
+                type="text"
+                placeholder="Masukkan username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+              />
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="password">Password</label>
-            <input 
-              id="password"
-              name="password"
-              type="password"
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all" 
-              placeholder="••••••••" 
-              disabled={isSubmitting}
-            />
+          
+          <div className="form-group">
+            <label>Password</label>
+            <div className="input-wrapper">
+              <Lock size={18} className="input-icon" />
+              <input
+                type="password"
+                placeholder="Masukkan password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
           </div>
-          <button 
-            type="submit"
-            disabled={isSubmitting} 
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center justify-center disabled:opacity-70 disabled:cursor-not-allowed"
-          >
-            {isSubmitting ? (
+
+          <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: '1rem' }} disabled={loading}>
+            {loading ? 'Memproses...' : (
               <>
-                <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                Masuk...
+                <LogIn size={18} />
+                Masuk
               </>
-            ) : (
-              'Masuk'
             )}
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-gray-600">
-          Belum punya akun?{' '}
-          <Link href="/register" className="text-blue-600 hover:text-blue-700 font-medium hover:underline">
-            Daftar sekarang
-          </Link>
+        <p style={{ textAlign: 'center', marginTop: '1.5rem', color: '#94a3b8', fontSize: '0.9rem' }}>
+          Belum punya akun? <Link href="/register" style={{ color: '#60a5fa', textDecoration: 'none' }}>Daftar di sini</Link>
         </p>
       </div>
     </div>

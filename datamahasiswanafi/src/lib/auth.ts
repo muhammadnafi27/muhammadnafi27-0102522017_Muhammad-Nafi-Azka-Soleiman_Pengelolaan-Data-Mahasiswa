@@ -1,60 +1,37 @@
-// Utility functions for auth token management
-const TOKEN_KEY = 'mahasiswa_auth_token';
-const USER_KEY = 'mahasiswa_auth_user';
-
-export interface AuthUser {
-  id: number;
-  name: string;
-  email: string;
-  role: string;
-}
-
-export const setAuth = (token: string, user: AuthUser) => {
+export const setToken = (token: string) => {
   if (typeof window !== 'undefined') {
-    localStorage.setItem(TOKEN_KEY, token);
-    localStorage.setItem(USER_KEY, JSON.stringify(user));
+    localStorage.setItem('token', token);
   }
 };
 
-export const getAuthToken = (): string | null => {
+export const getToken = (): string | null => {
   if (typeof window !== 'undefined') {
-    return localStorage.getItem(TOKEN_KEY);
+    return localStorage.getItem('token');
   }
   return null;
 };
 
-export const getAuthUser = (): AuthUser | null => {
+export const removeToken = () => {
   if (typeof window !== 'undefined') {
-    const user = localStorage.getItem(USER_KEY);
-    if (user) {
-      try {
-        return JSON.parse(user);
-      } catch {
-        clearAuth();
-        return null;
-      }
-    }
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
   }
-  return null;
 };
 
-export const clearAuth = () => {
+export const setUser = (user: unknown) => {
   if (typeof window !== 'undefined') {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
+    localStorage.setItem('user', JSON.stringify(user));
   }
+};
+
+export const getUser = () => {
+  if (typeof window !== 'undefined') {
+    const user = localStorage.getItem('user');
+    return user ? JSON.parse(user) : null;
+  }
+  return null;
 };
 
 export const isAuthenticated = (): boolean => {
-  return !!getAuthToken();
+  return !!getToken();
 };
-
-export const hasRole = (allowedRoles: string[]): boolean => {
-  const user = getAuthUser();
-  return !!user && allowedRoles.includes(user.role);
-};
-
-export const canCreateMahasiswa = (): boolean => hasRole(['admin', 'operator']);
-export const canUpdateMahasiswa = (): boolean => hasRole(['admin', 'operator']);
-export const canDeleteMahasiswa = (): boolean => hasRole(['admin']);
-export const canManageUsers = (): boolean => hasRole(['admin']);

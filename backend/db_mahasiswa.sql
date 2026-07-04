@@ -54,22 +54,16 @@ INSERT INTO mahasiswa (nim, nama, prodi_id, angkatan, foto) VALUES
 ('2401003', 'Andi Wijaya', 6, 2024, NULL),
 ('2401004', 'Citra Maharani', 1, 2024, NULL);
 
--- 3. Tabel Users untuk Autentikasi
-CREATE TABLE users (
-  id INT AUTO_INCREMENT PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  nim VARCHAR(30) UNIQUE DEFAULT NULL,
-  email VARCHAR(100) NOT NULL UNIQUE,
-  password VARCHAR(255) NOT NULL,
-  prodi_id INT DEFAULT NULL,
-  role ENUM('admin', 'operator', 'viewer') DEFAULT 'viewer',
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX idx_users_email (email),
-  CONSTRAINT fk_users_prodi FOREIGN KEY (prodi_id) REFERENCES prodi(id) ON UPDATE CASCADE ON DELETE SET NULL
-) ENGINE=InnoDB;
-
 -- Query debugging/pengecekan akhir
 SELECT m.id, m.nim, m.nama, p.nama_prodi, m.angkatan, m.foto, m.created_at, m.updated_at
 FROM mahasiswa m
 JOIN prodi p ON m.prodi_id = p.id;
+
+-- 3. Tabel Users (Otentikasi)
+CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(100) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  role ENUM('admin', 'user') DEFAULT 'user',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;

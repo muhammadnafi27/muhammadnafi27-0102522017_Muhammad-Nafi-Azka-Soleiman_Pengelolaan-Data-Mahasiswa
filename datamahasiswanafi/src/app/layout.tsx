@@ -9,8 +9,6 @@ export const metadata: Metadata = {
   },
 };
 
-import { AuthProvider } from '@/context/AuthContext';
-
 export default function RootLayout({
   children,
 }: {
@@ -19,11 +17,9 @@ export default function RootLayout({
   return (
     <html lang="id">
       <body>
-        <AuthProvider>
-          <div className="container">
-            {children}
-          </div>
-        </AuthProvider>
+        <div className="container">
+          {children}
+        </div>
       </body>
     </html>
   );
