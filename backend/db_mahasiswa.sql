@@ -58,12 +58,15 @@ INSERT INTO mahasiswa (nim, nama, prodi_id, angkatan, foto) VALUES
 CREATE TABLE users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
+  nim VARCHAR(30) UNIQUE DEFAULT NULL,
   email VARCHAR(100) NOT NULL UNIQUE,
   password VARCHAR(255) NOT NULL,
+  prodi_id INT DEFAULT NULL,
   role ENUM('admin', 'operator', 'viewer') DEFAULT 'viewer',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-  INDEX idx_users_email (email)
+  INDEX idx_users_email (email),
+  CONSTRAINT fk_users_prodi FOREIGN KEY (prodi_id) REFERENCES prodi(id) ON UPDATE CASCADE ON DELETE SET NULL
 ) ENGINE=InnoDB;
 
 -- Query debugging/pengecekan akhir

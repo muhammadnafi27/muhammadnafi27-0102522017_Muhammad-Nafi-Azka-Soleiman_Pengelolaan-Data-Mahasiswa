@@ -24,3 +24,9 @@ yarn-error.log*
 # Uploads
 backend/uploads/
 
+# Environment Variables
+.env
+.env.local
+.env.development
+.env.test
+.env.production
