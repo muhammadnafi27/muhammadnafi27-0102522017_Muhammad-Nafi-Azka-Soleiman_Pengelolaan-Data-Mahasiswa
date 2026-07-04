@@ -8,12 +8,14 @@ import { AuthUser } from '@/lib/auth';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 import AuthLeftPanel from '@/components/AuthLeftPanel';
+import Notification from '@/components/Notification';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [showNotification, setShowNotification] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { login, isAuthenticated, isLoading } = useAuth();
@@ -27,6 +29,7 @@ export default function LoginPage() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
+    setShowNotification(false);
     setLoading(true);
 
     try {
@@ -41,6 +44,7 @@ export default function LoginPage() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       setErrorMsg(msg);
+      setShowNotification(true);
     } finally {
       setLoading(false);
     }
@@ -48,6 +52,14 @@ export default function LoginPage() {
 
   return (
     <div className="auth-wrapper">
+      {showNotification && (
+        <Notification 
+          message={errorMsg} 
+          type="error" 
+          onClose={() => setShowNotification(false)} 
+        />
+      )}
+      
       <div className="auth-card">
         {/* Left Side Branding */}
         <AuthLeftPanel />
@@ -60,20 +72,6 @@ export default function LoginPage() {
               <p className="auth-form-subtitle">Masuk ke akun Anda untuk melanjutkan</p>
             </div>
 
-            {errorMsg && (
-              <div style={{
-                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                borderLeft: '4px solid #ef4444',
-                color: '#fca5a5',
-                padding: '0.85rem 1rem',
-                borderRadius: '10px',
-                marginBottom: '1.5rem',
-                fontSize: '0.85rem'
-              }}>
-                {errorMsg}
-              </div>
-            )}
-
             <form onSubmit={handleLogin}>
               <div className="auth-form-group">
                 <label className="auth-label">Email / NIM</label>
@@ -82,9 +80,9 @@ export default function LoginPage() {
                     <Mail size={18} />
                   </span>
                   <input
-                    type="email"
+                    type="text"
                     className="auth-input"
-                    placeholder="Masukkan email"
+                    placeholder="Masukkan email atau NIM"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
                     required

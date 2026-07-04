@@ -59,20 +59,23 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
       return;
     }
 
-    const trimmedEmail = email.trim().toLowerCase();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(trimmedEmail)) {
-      res.status(400).json({ message: 'Format email tidak valid' });
-      return;
+    const trimmedIdentifier = email.trim();
+    const isEmail = trimmedIdentifier.includes('@');
+    if (isEmail) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(trimmedIdentifier.toLowerCase())) {
+        res.status(400).json({ message: 'Format email tidak valid' });
+        return;
+      }
     }
 
     const [users] = await pool.query<RowDataPacket[]>(
-      'SELECT id, name, email, password, role FROM users WHERE email = ? LIMIT 1',
-      [trimmedEmail]
+      'SELECT id, name, email, password, role FROM users WHERE email = ? OR nim = ? LIMIT 1',
+      [trimmedIdentifier.toLowerCase(), trimmedIdentifier]
     );
     
     if (users.length === 0) {
-      res.status(401).json({ message: 'Email atau password salah' });
+      res.status(401).json({ message: 'Email/NIM atau password salah' });
       return;
     }
 
@@ -80,7 +83,7 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      res.status(401).json({ message: 'Email atau password salah' });
+      res.status(401).json({ message: 'Email/NIM atau password salah' });
       return;
     }
 
