@@ -119,6 +119,32 @@ Password disimpan dalam bentuk hash bcrypt dengan salt rounds 10. Password plain
 
 ---
 
+## Sistem Otentikasi & Role-Based Access Control (RBAC) (Tugas 14)
+
+Sistem ini telah ditingkatkan dengan fitur **Role-Based Access Control (RBAC)** untuk mengamankan data secara terstruktur dan terukur. Terdapat 3 tingkat peran yang memberikan hak akses berbeda pada API maupun antarmuka pengguna:
+
+### 1. Peran: Admin (Full Access)
+Admin memiliki hak penuh untuk mengelola keseluruhan sistem. Admin dapat melihat, menambah, mengubah, dan menghapus data mahasiswa.
+![Admin Login](./screenshots/tugas%20kelas/Admin%20login.png)
+![Fitur Admin Hapus](./screenshots/tugas%20kelas/Fitur%20Admin%20Hapus.png)
+
+### 2. Peran: Operator (Limited Access)
+Operator memiliki hak kelola data tingkat operasional. Operator dapat melihat, menambah, dan mengubah data mahasiswa, tetapi **tidak dapat menghapus** data. Jika mencoba menghapus, akan menerima respon "Access Denied".
+![Operator Login](./screenshots/tugas%20kelas/Operator%20Login.png)
+![Operator Denied](./screenshots/tugas%20kelas/Operator%20Denied.png)
+
+### 3. Peran: Viewer (Read-Only)
+Viewer adalah entitas dengan batasan maksimum. Viewer hanya dapat melihat data mahasiswa (Read-Only). Akses untuk menambah, mengubah, atau menghapus data sepenuhnya ditolak.
+![Viewer Login](./screenshots/tugas%20kelas/Viewer%20Login.png)
+![Viewer Denied](./screenshots/tugas%20kelas/Viewer%20Denied.png)
+
+### Tabel Referensi Role & Seed
+Sistem memiliki tiga akun awal yang diinjeksi saat inisialisasi basis data untuk keperluan pengujian dan demonstrasi:
+![Isi Tabel User Peran](./screenshots/tugas%20kelas/Isi%20Tabel%20User%20Peran.png)
+![Tambahan Tabel User](./screenshots/tugas%20kelas/Tambahan%20Tabel%20User.png)
+
+---
+
 ## Arsitektur Sistem
 
 Sistem ini menerapkan pola arsitektur **Client-Server terpisah (Decoupled)** dengan lapisan otentikasi JWT yang melindungi endpoint sensitif.
