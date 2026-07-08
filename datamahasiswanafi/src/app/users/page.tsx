@@ -177,7 +177,7 @@ export default function UsersPage() {
             </header>
           </div>
 
-          <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 2rem 3rem' }}>
+          <div style={{ width: '100%', maxWidth: '1600px', margin: '0 auto', padding: '0 3rem 3rem' }}>
             {/* Page title row */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.75rem', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
