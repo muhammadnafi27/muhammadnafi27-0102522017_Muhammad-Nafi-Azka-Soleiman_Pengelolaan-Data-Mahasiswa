@@ -14,9 +14,9 @@ interface UserTableProps {
 }
 
 const ROLE_BADGE: Record<string, { bg: string; color: string; border: string; label: string }> = {
-  admin:    { bg: 'rgba(129,140,248,0.15)',  color: '#818cf8',  border: 'rgba(129,140,248,0.35)',  label: 'Admin' },
-  operator: { bg: 'rgba(34,211,238,0.15)',   color: '#22d3ee',  border: 'rgba(34,211,238,0.35)',   label: 'Operator' },
-  viewer:   { bg: 'rgba(192,132,252,0.15)',  color: '#c084fc',  border: 'rgba(192,132,252,0.35)',  label: 'Viewer' },
+  admin:    { bg: 'rgba(59,130,246,0.15)',   color: '#60a5fa',  border: 'rgba(59,130,246,0.35)',   label: 'Admin' },
+  operator: { bg: 'rgba(6,182,212,0.15)',    color: '#22d3ee',  border: 'rgba(6,182,212,0.35)',    label: 'Operator' },
+  viewer:   { bg: 'rgba(56,189,248,0.15)',   color: '#38bdf8',  border: 'rgba(56,189,248,0.35)',   label: 'Viewer' },
 };
 
 function formatDate(dateStr?: string) {
@@ -119,25 +119,25 @@ export default function UserTable({ users, isLoading, currentUserId, onEdit, onD
                     <td style={{ ...tdStyle, color: '#64748b', fontSize: '0.83rem' }}>{formatDate(u.created_at)}</td>
                     <td style={{ ...tdStyle, textAlign: 'right' }}>
                       <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end' }}>
-                        <button style={actionBtn('#60a5fa')} title="Edit"
+                        <button style={actionBtn('#22d3ee')} title="Edit"
                           onClick={() => onEdit(u)}
-                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(96,165,250,0.25)'; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(96,165,250,0.08)'; }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(34,211,238,0.25)'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(34,211,238,0.08)'; }}
                         >
                           <Pencil size={15} />
                         </button>
-                        <button style={actionBtn('#fbbf24')} title="Reset Password"
+                        <button style={actionBtn('#60a5fa')} title="Reset Password"
                           onClick={() => onResetPassword(u)}
-                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(251,191,36,0.25)'; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(251,191,36,0.08)'; }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(96,165,250,0.25)'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(96,165,250,0.08)'; }}
                         >
                           <KeyRound size={15} />
                         </button>
                         {!isSelf && (
-                          <button style={actionBtn('#f87171')} title="Hapus"
+                          <button style={actionBtn('#38bdf8')} title="Hapus"
                             onClick={() => onDelete(u)}
-                            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(248,113,113,0.25)'; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(248,113,113,0.08)'; }}
+                            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(56,189,248,0.25)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(56,189,248,0.08)'; }}
                           >
                             <Trash2 size={15} />
                           </button>

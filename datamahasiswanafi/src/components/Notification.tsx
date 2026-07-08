@@ -7,9 +7,10 @@ interface NotificationProps {
   message: string;
   type: NotificationType;
   onClose: () => void;
+  entityName?: string;
 }
 
-export default function Notification({ message, type, onClose }: NotificationProps) {
+export default function Notification({ message, type, onClose, entityName = 'Mahasiswa' }: NotificationProps) {
   const [isExiting, setIsExiting] = useState(false);
 
   const handleClose = React.useCallback(() => {
@@ -31,7 +32,7 @@ export default function Notification({ message, type, onClose }: NotificationPro
       case 'create':
         return {
           icon: <UserPlus size={22} />,
-          title: 'Mahasiswa Ditambahkan',
+          title: `${entityName} Ditambahkan`,
           borderColor: 'rgba(16, 185, 129, 0.4)',
           bgColor: 'rgba(6, 78, 59, 0.85)',
           glowColor: 'rgba(16, 185, 129, 0.3)',
@@ -42,7 +43,7 @@ export default function Notification({ message, type, onClose }: NotificationPro
       case 'update':
         return {
           icon: <RefreshCw size={22} className="spin-slow" />,
-          title: 'Mahasiswa Diperbarui',
+          title: `${entityName} Diperbarui`,
           borderColor: 'rgba(59, 130, 246, 0.4)',
           bgColor: 'rgba(30, 58, 138, 0.85)',
           glowColor: 'rgba(59, 130, 246, 0.3)',
@@ -53,7 +54,7 @@ export default function Notification({ message, type, onClose }: NotificationPro
       case 'delete':
         return {
           icon: <Trash2 size={22} />,
-          title: 'Mahasiswa Dihapus',
+          title: `${entityName} Dihapus`,
           borderColor: 'rgba(249, 115, 22, 0.4)',
           bgColor: 'rgba(124, 45, 18, 0.85)',
           glowColor: 'rgba(249, 115, 22, 0.3)',

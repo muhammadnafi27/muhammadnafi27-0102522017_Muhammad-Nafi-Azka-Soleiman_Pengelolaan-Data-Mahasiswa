@@ -110,7 +110,7 @@ export default function UsersPage() {
         <div className="app">
           {/* Notifications */}
           {notifications.map((n) => (
-            <Notification key={n.id} message={n.message} type={n.type} onClose={() => removeNotif(n.id)} />
+            <Notification key={n.id} message={n.message} type={n.type} onClose={() => removeNotif(n.id)} entityName="User" />
           ))}
 
           {/* Delete confirmation */}
@@ -192,23 +192,6 @@ export default function UsersPage() {
                 </div>
                 <p style={{ color: '#64748b', fontSize: '0.95rem', margin: 0 }}>Kelola akun admin, operator, dan viewer.</p>
               </div>
-              {isAdmin && (
-                <button
-                  onClick={() => { setEditingUser(null); setShowForm(true); }}
-                  style={{
-                    display: 'flex', alignItems: 'center', gap: '0.55rem',
-                    padding: '0.75rem 1.4rem', borderRadius: '12px',
-                    background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                    border: 'none', color: '#fff', fontWeight: 700, fontSize: '0.9rem', cursor: 'pointer',
-                    boxShadow: '0 8px 20px rgba(99,102,241,0.35)', transition: 'all 0.2s',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.transform = 'translateY(-2px)')}
-                  onMouseLeave={(e) => (e.currentTarget.style.transform = 'none')}
-                >
-                  <UserPlus size={18} />
-                  Tambah User
-                </button>
-              )}
             </div>
 
             {/* Access denied for non-admin */}
@@ -240,18 +223,36 @@ export default function UsersPage() {
                   display: 'flex', alignItems: 'center', gap: '0.75rem',
                   padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.06)',
                 }}>
-                  <Users size={20} color="#818cf8" />
+                  <Users size={20} color="#3b82f6" />
                   <span style={{ fontWeight: 700, color: '#e2e8f0', fontSize: '1rem' }}>
                     Daftar User
                   </span>
                   <span style={{
-                    marginLeft: 'auto', fontSize: '0.8rem', fontWeight: 600,
-                    backgroundColor: 'rgba(99,102,241,0.12)', color: '#818cf8',
-                    border: '1px solid rgba(99,102,241,0.25)', borderRadius: '6px',
+                    fontSize: '0.8rem', fontWeight: 600,
+                    backgroundColor: 'rgba(59, 130, 246, 0.12)', color: '#3b82f6',
+                    border: '1px solid rgba(59, 130, 246, 0.25)', borderRadius: '6px',
                     padding: '0.2rem 0.6rem',
                   }}>
                     {users.length} user
                   </span>
+                  {isAdmin && (
+                    <button
+                      onClick={() => { setEditingUser(null); setShowForm(true); }}
+                      style={{
+                        marginLeft: 'auto',
+                        display: 'flex', alignItems: 'center', gap: '0.55rem',
+                        padding: '0.55rem 1.1rem', borderRadius: '10px',
+                        background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                        border: '1px solid rgba(59, 130, 246, 0.4)', color: '#fff', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer',
+                        boxShadow: '0 4px 12px rgba(37,99,235,0.3)', transition: 'all 0.2s',
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(37,99,235,0.4)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(37,99,235,0.3)'; }}
+                    >
+                      <UserPlus size={16} />
+                      Tambah User
+                    </button>
+                  )}
                 </div>
 
                 <UserTable
