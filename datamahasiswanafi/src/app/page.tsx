@@ -2,7 +2,8 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { GraduationCap, Search, Filter, LogOut, ShieldCheck } from 'lucide-react';
+import { GraduationCap, Search, Filter, LogOut, ShieldCheck, Users } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import DashboardCard from '../components/DashboardCard';
 import MahasiswaForm from '../components/MahasiswaForm';
 import MahasiswaTable from '../components/MahasiswaTable';
@@ -25,6 +26,7 @@ export default function Home() {
   const [editingMahasiswa, setEditingMahasiswa] = useState<Mahasiswa | null>(null);
   const [notifications, setNotifications] = useState<NotificationState[]>([]);
   const { user, logout } = useAuth();
+  const router = useRouter();
 
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -178,6 +180,24 @@ export default function Home() {
                   <ShieldCheck size={14} />
                   {roleBadge.label}
                 </div>
+                {userRole === 'admin' && (
+                  <button
+                    onClick={() => router.push('/users')}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '0.5rem',
+                      backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                      border: '1px solid rgba(99, 102, 241, 0.3)',
+                      color: '#818cf8', padding: '0.5rem 1rem',
+                      borderRadius: '8px', cursor: 'pointer',
+                      fontWeight: 600, fontSize: '0.85rem', transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.2)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(99, 102, 241, 0.1)'; }}
+                  >
+                    <Users size={16} />
+                    Kelola User
+                  </button>
+                )}
                 <button
                   onClick={logout}
                   style={{
