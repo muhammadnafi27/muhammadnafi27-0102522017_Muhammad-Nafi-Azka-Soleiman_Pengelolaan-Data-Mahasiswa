@@ -64,14 +64,14 @@ export default function ForgotPasswordPage() {
           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
             <div style={{
               width: '64px', height: '64px', margin: '0 auto 1.25rem',
-              background: 'linear-gradient(135deg, rgba(99,102,241,0.2) 0%, rgba(99,102,241,0.05) 100%)',
-              border: '1px solid rgba(99,102,241,0.3)', borderRadius: '20px',
+              background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.4) 0%, rgba(14, 165, 233, 0.4) 100%)',
+              border: '1px solid rgba(96, 165, 250, 0.6)', borderRadius: '20px',
               display: 'flex', alignItems: 'center', justifyContent: 'center',
-              boxShadow: '0 8px 20px rgba(99,102,241,0.15)'
+              boxShadow: '0 8px 20px rgba(59, 130, 246, 0.35)'
             }}>
-              <GraduationCap size={34} color="#818cf8" />
+              <GraduationCap size={34} color="#60a5fa" />
             </div>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#f1f5f9', margin: 0 }}>Lupa Password</h1>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#3b82f6', margin: 0 }}>Lupa Password</h1>
             <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: '0.5rem', lineHeight: 1.5 }}>
               Masukkan email Anda dan kami akan mengirimkan link untuk mereset password.
             </p>
@@ -129,15 +129,15 @@ export default function ForgotPasswordPage() {
               disabled={loading}
               style={{
                 width: '100%', padding: '0.9rem', borderRadius: '12px',
-                background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                border: 'none', color: '#ffffff', fontWeight: 700, fontSize: '0.95rem',
+                background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+                border: '1px solid rgba(59,130,246,0.5)', color: '#ffffff', fontWeight: 700, fontSize: '0.95rem',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem',
-                boxShadow: '0 8px 20px rgba(99, 102, 241, 0.35)',
-                transition: 'all 0.2s', opacity: loading ? 0.8 : 1, marginTop: '0.5rem'
+                boxShadow: '0 8px 20px rgba(37,99,235,0.4)',
+                transition: 'all 0.2s', opacity: loading ? 0.7 : 1, marginTop: '0.75rem'
               }}
-              onMouseEnter={(e) => { if (!loading) e.currentTarget.style.transform = 'translateY(-2px)'; }}
-              onMouseLeave={(e) => { if (!loading) e.currentTarget.style.transform = 'none'; }}
+              onMouseEnter={(e) => { if (!loading) { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 12px 25px rgba(37,99,235,0.5)'; } }}
+              onMouseLeave={(e) => { if (!loading) { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(37,99,235,0.4)'; } }}
             >
               {loading ? (
                 <div style={{ width: 18, height: 18, border: '2.5px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite' }} />
