@@ -14,11 +14,12 @@ Sistem Informasi Pengelolaan Data Mahasiswa adalah aplikasi web full-stack berba
 5. [Fitur Aplikasi](#fitur-aplikasi)
 6. [Sistem Otentikasi (Tugas 13)](#sistem-otentikasi-tugas-13)
 7. [Role-Based Access Control (Tugas 14 Mingguan)](#role-based-access-control-tugas-14-mingguan)
-8. [Dokumentasi REST API](#dokumentasi-rest-api)
-9. [Panduan Instalasi dan Menjalankan Aplikasi](#panduan-instalasi-dan-menjalankan-aplikasi)
-10. [Checklist Testing](#checklist-testing)
-11. [Penyelesaian Masalah Umum](#penyelesaian-masalah-umum)
-12. [Informasi Pengembang](#informasi-pengembang)
+8. [Manajemen User & Forgot Password (Tugas 15 Mingguan)](#manajemen-user--forgot-password-tugas-15-mingguan)
+9. [Dokumentasi REST API](#dokumentasi-rest-api)
+10. [Panduan Instalasi dan Menjalankan Aplikasi](#panduan-instalasi-dan-menjalankan-aplikasi)
+11. [Checklist Testing](#checklist-testing)
+12. [Penyelesaian Masalah Umum](#penyelesaian-masalah-umum)
+13. [Informasi Pengembang](#informasi-pengembang)
 
 ---
 
@@ -579,6 +580,44 @@ Tombol "Keluar" dengan ikon LogOut terletak di header Dynamic Island:
 
 ---
 
+## Manajemen User & Forgot Password (Tugas 15 Mingguan)
+
+Pada Tugas 15 Mingguan, sistem dikembangkan lebih lanjut dengan menambahkan fitur manajemen pengguna (CRUD Users) khusus Admin serta integrasi fitur keamanan *Forgot Password* dengan Token yang dikirim via SMTP Gmail. Selain itu, UI juga diperbarui untuk memiliki aksen warna biru cerah (vibrant) yang modern.
+
+### 1. Halaman Manajemen User (Khusus Admin)
+
+Halaman manajemen user (`/users`) merupakan halaman terproteksi yang **hanya dapat diakses oleh pengguna dengan role Admin**. Operator dan Viewer tidak akan melihat menu ini di navigasi dan akan diarahkan kembali ke dashboard jika mencoba mengakses URL secara langsung.
+
+Fitur yang tersedia pada Manajemen User:
+- **Tabel Daftar User**: Menampilkan nama lengkap, NIM, email, role, dan tanggal dibuat. Password disembunyikan secara aman dari sisi backend.
+- **Tambah User**: Menggunakan antarmuka form yang terintegrasi di dalam tabel, menampilkan modal dinamis yang ringkas.
+- **Edit User**: Admin dapat mengubah detail user dan mengatur ulang role.
+- **Hapus User**: Admin dapat menghapus akun pengguna (terdapat konfirmasi khusus).
+- **Toast Notification Kustom**: Notifikasi pada fitur ini di-customisasi untuk menyampaikan pesan terkait *user* (misal: "User berhasil ditambahkan").
+
+![Halaman Manajemen User](./screenshots/tugas%20kelas/Kelola%20User%20Page.png)
+![User Diedit](./screenshots/tugas%20kelas/User%20Diedit.png)
+![User Dihapus](./screenshots/tugas%20kelas/User%20Dihapus.png)
+
+### 2. Forgot Password & Reset Token
+
+Fitur Lupa Password ini merupakan tambahan opsional yang aman dan canggih:
+- **Alur Lupa Password via Email**: Pengguna memasukkan email terdaftar mereka di halaman "Lupa Password" (tulisan dan ikon menggunakan warna biru vibrant).
+- **Token Aman**: Backend akan men-generate random *raw token*. Hanya *hash token* (`sha256`) yang disimpan di database pada tabel `password_reset_tokens`.
+- **Pengiriman via SMTP Gmail**: *Raw token* dikirimkan dalam bentuk URL ke alamat email pengguna menggunakan Nodemailer dengan SMTP Google App Password.
+- **Keamanan Waktu (Expiry)**: Token hanya berlaku selama 15 menit dan bersifat sekali pakai (One-Time Use).
+- **Reset Password**: Saat URL diklik, pengguna dapat memasukkan password baru di antarmuka reset password dengan *button* biru yang modern.
+
+![Lupa Password](./screenshots/tugas%20kelas/Lupa%20Password.png)
+![Link Dikirim ke Email](./screenshots/tugas%20kelas/Link%20Lupa%20Dikirim.png)
+
+### 3. Peningkatan UI/UX & Tema Vibrant
+Seluruh tampilan UI telah diperbarui (UI/UX Fix) pada Tugas 15 Mingguan:
+- **Tema Vibrant Blue**: Warna tombol dan teks (termasuk tombol reset/lupa password) dijadikan biru cerah agar senada dengan logo topi wisuda login.
+- **Posisi Tambah User**: Peletakan form "Tambah User" dimasukkan secara efisien ke dalam layout tabel, memberikan kesan antarmuka yang padat, profesional, dan *colorful* namun tetap mempertahankan aksen biru utama.
+
+---
+
 ## Dokumentasi REST API
 
 Semua komunikasi antara frontend dan backend menggunakan format JSON. Backend berjalan pada `http://localhost:3000`.
@@ -1062,3 +1101,4 @@ Proyek ini dikembangkan sebagai bagian dari penugasan praktikum mata kuliah Pemr
 | Tugas Awal | CRUD Mahasiswa, Search, Filter, Pagination, Upload Foto | Selesai |
 | Tugas 13 | Tabel Users, Register, Login, bcrypt, JWT, authMiddleware, Protected Route, Halaman Login, Halaman Register, Tombol Logout, localStorage Token | Selesai |
 | Tugas 14 Mingguan | Middleware allowRoles, Role Authorization Endpoint Mahasiswa, Akun Uji Admin/Operator/Viewer, Laporan Testing, Frontend Conditional Rendering per Role, Role Badge, Viewer Info Banner | Selesai |
+| Tugas 15 Mingguan | Integrasi Menu Manajemen User untuk Admin (CRUD Users Frontend & Backend), Opsional Forgot Password dengan SMTP Gmail & Nodemailer, UI/UX Fixes (Tema Blue Vibrant, Posisi Tambah User di Tabel) | Selesai |
