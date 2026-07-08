@@ -2,12 +2,13 @@ import { Router } from 'express';
 import { getMahasiswas, createMahasiswa, updateMahasiswa, deleteMahasiswa } from '../controllers/mahasiswa.controller';
 import uploadFotoMahasiswa from '../middlewares/upload.middleware';
 import { authMiddleware } from '../middlewares/auth.middleware';
+import { allowRoles } from '../middlewares/role.middleware';
 
 const router = Router();
 
-router.get('/', authMiddleware, getMahasiswas);
-router.post('/', authMiddleware, uploadFotoMahasiswa.single('foto'), createMahasiswa);
-router.put('/:id', authMiddleware, uploadFotoMahasiswa.single('foto'), updateMahasiswa);
-router.delete('/:id', authMiddleware, deleteMahasiswa);
+router.get('/', authMiddleware, allowRoles('admin', 'operator', 'viewer'), getMahasiswas);
+router.post('/', authMiddleware, allowRoles('admin', 'operator'), uploadFotoMahasiswa.single('foto'), createMahasiswa);
+router.put('/:id', authMiddleware, allowRoles('admin', 'operator'), uploadFotoMahasiswa.single('foto'), updateMahasiswa);
+router.delete('/:id', authMiddleware, allowRoles('admin'), deleteMahasiswa);
 
 export default router;
