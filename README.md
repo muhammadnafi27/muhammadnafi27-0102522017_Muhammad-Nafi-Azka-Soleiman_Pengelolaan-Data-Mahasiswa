@@ -13,11 +13,12 @@ Sistem Informasi Pengelolaan Data Mahasiswa adalah aplikasi web full-stack berba
 4. [Struktur Direktori](#struktur-direktori)
 5. [Fitur Aplikasi](#fitur-aplikasi)
 6. [Sistem Otentikasi (Tugas 13)](#sistem-otentikasi-tugas-13)
-7. [Dokumentasi REST API](#dokumentasi-rest-api)
-8. [Panduan Instalasi dan Menjalankan Aplikasi](#panduan-instalasi-dan-menjalankan-aplikasi)
-9. [Checklist Testing](#checklist-testing)
-10. [Penyelesaian Masalah Umum](#penyelesaian-masalah-umum)
-11. [Informasi Pengembang](#informasi-pengembang)
+7. [Role-Based Access Control (Tugas 14 Mingguan)](#role-based-access-control-tugas-14-mingguan)
+8. [Dokumentasi REST API](#dokumentasi-rest-api)
+9. [Panduan Instalasi dan Menjalankan Aplikasi](#panduan-instalasi-dan-menjalankan-aplikasi)
+10. [Checklist Testing](#checklist-testing)
+11. [Penyelesaian Masalah Umum](#penyelesaian-masalah-umum)
+12. [Informasi Pengembang](#informasi-pengembang)
 
 ---
 
@@ -119,29 +120,63 @@ Password disimpan dalam bentuk hash bcrypt dengan salt rounds 10. Password plain
 
 ---
 
-## Sistem Otentikasi & Role-Based Access Control (RBAC) (Tugas 14)
+## Role-Based Access Control (Tugas 14 Mingguan)
 
-Sistem ini telah ditingkatkan dengan fitur **Role-Based Access Control (RBAC)** untuk mengamankan data secara terstruktur dan terukur. Terdapat 3 tingkat peran yang memberikan hak akses berbeda pada API maupun antarmuka pengguna:
+Pada Tugas 14 Mingguan, sistem ditingkatkan dengan implementasi **Role-Based Access Control (RBAC)** yang mengamankan endpoint backend dan menyesuaikan tampilan UI frontend berdasarkan peran pengguna yang sedang login.
 
-### 1. Peran: Admin (Full Access)
-Admin memiliki hak penuh untuk mengelola keseluruhan sistem. Admin dapat melihat, menambah, mengubah, dan menghapus data mahasiswa.
-![Admin Login](./screenshots/tugas%20kelas/Admin%20login.png)
+### Middleware `allowRoles`
+
+Middleware `allowRoles` diposisikan setelah `authMiddleware` pada setiap rute yang memerlukan kontrol akses. Urutan eksekusi:
+
+1. `authMiddleware` — memverifikasi JWT dan mengisi `req.user`
+2. `allowRoles(...)` — memeriksa apakah `req.user.role` termasuk dalam daftar role yang diizinkan
+3. Upload middleware (jika ada)
+4. Controller
+
+### Matriks Akses Endpoint
+
+| Method | Endpoint | Admin | Operator | Viewer |
+|---|---|---|---|---|
+| GET | `/api/mahasiswa` | ✅ Boleh | ✅ Boleh | ✅ Boleh |
+| POST | `/api/mahasiswa` | ✅ Boleh | ✅ Boleh | ❌ 403 |
+| PUT | `/api/mahasiswa/:id` | ✅ Boleh | ✅ Boleh | ❌ 403 |
+| DELETE | `/api/mahasiswa/:id` | ✅ Boleh | ❌ 403 | ❌ 403 |
+
+### Akun Uji Tersedia
+
+| Role | Email | Password Uji | Hak Akses |
+|---|---|---|---|
+| Admin | admin@kampus.ac.id | Admin12345 | Full Access |
+| Operator | operator@kampus.ac.id | Operator12345 | Create, Read, Update |
+| Viewer | viewer@kampus.ac.id | Viewer12345 | Read Only |
+
+### Tampilan Antarmuka per Role
+
+#### Admin — Full Access
+Admin memiliki hak penuh. Form tambah mahasiswa, tombol edit, dan tombol hapus ditampilkan seluruhnya. Role badge berwarna **amber** terlihat di header.
+
+![Tampilan Admin](./screenshots/tugas%20kelas/Tampilan%20Admin.png)
 ![Fitur Admin Hapus](./screenshots/tugas%20kelas/Fitur%20Admin%20Hapus.png)
 
-### 2. Peran: Operator (Limited Access)
-Operator memiliki hak kelola data tingkat operasional. Operator dapat melihat, menambah, dan mengubah data mahasiswa, tetapi **tidak dapat menghapus** data. Jika mencoba menghapus, akan menerima respon "Access Denied".
-![Operator Login](./screenshots/tugas%20kelas/Operator%20Login.png)
+#### Operator — Akses Terbatas
+Operator dapat menambah dan mengedit data mahasiswa, tetapi **tombol hapus tidak ditampilkan** di UI dan endpoint DELETE mengembalikan 403 Forbidden. Role badge berwarna **cyan**.
+
+![Tampilan Operator](./screenshots/tugas%20kelas/Tampilan%20Operator.png)
 ![Operator Denied](./screenshots/tugas%20kelas/Operator%20Denied.png)
 
-### 3. Peran: Viewer (Read-Only)
-Viewer adalah entitas dengan batasan maksimum. Viewer hanya dapat melihat data mahasiswa (Read-Only). Akses untuk menambah, mengubah, atau menghapus data sepenuhnya ditolak.
-![Viewer Login](./screenshots/tugas%20kelas/Viewer%20Login.png)
-![Viewer Denied](./screenshots/tugas%20kelas/Viewer%20Denied.png)
+#### Viewer — Hanya Lihat
+Viewer hanya dapat melihat data mahasiswa. Form tambah, tombol edit, dan tombol hapus **tidak dirender sama sekali** dari DOM. Kolom Aksi pada tabel pun menghilang. Banner informasi profesional ditampilkan. Role badge berwarna **violet**.
 
-### Tabel Referensi Role & Seed
-Sistem memiliki tiga akun awal yang diinjeksi saat inisialisasi basis data untuk keperluan pengujian dan demonstrasi:
+![Tampilan Viewer](./screenshots/tugas%20kelas/Tampilan%20Viewer.png)
+
+### Tabel Referensi Data Seed
+
 ![Isi Tabel User Peran](./screenshots/tugas%20kelas/Isi%20Tabel%20User%20Peran.png)
 ![Tambahan Tabel User](./screenshots/tugas%20kelas/Tambahan%20Tabel%20User.png)
+
+### Catatan Keamanan
+
+Menyembunyikan tombol di frontend hanya untuk meningkatkan pengalaman pengguna. **Keamanan utama tetap dilakukan di backend** menggunakan `authMiddleware` dan `allowRoles`. Seluruh endpoint divalidasi secara stateless melalui JWT, sehingga manipulasi DOM dari sisi browser tidak dapat melewati proteksi server.
 
 ---
 
@@ -207,26 +242,27 @@ Sistem Pengelolaan Data Mahasiswa/
 |
 +-- backend/                       Layanan API Server (Express + TypeScript)
 |   +-- src/
-|   |   +-- config/
-|   |   |   +-- database.ts        Inisialisasi dan konfigurasi MySQL connection pool
 |   |   +-- controllers/
 |   |   |   +-- auth.controller.ts     Logika register, login, me, dan logout
 |   |   |   +-- mahasiswa.controller.ts   Logika bisnis CRUD dan pencarian mahasiswa
 |   |   |   +-- prodi.controller.ts       Logika pengambilan daftar program studi
 |   |   +-- middlewares/
-|   |   |   +-- auth.middleware.ts      Verifikasi JWT dan proteksi endpoint
+|   |   |   +-- auth.middleware.ts      Verifikasi JWT, validasi role payload, isi req.user
+|   |   |   +-- role.middleware.ts      Middleware allowRoles untuk otorisasi berbasis peran
 |   |   |   +-- upload.middleware.ts    Konfigurasi Multer: validasi tipe & batas ukuran
 |   |   +-- routes/
 |   |   |   +-- auth.route.ts          Definisi endpoint otentikasi (register/login/me/logout)
-|   |   |   +-- mahasiswa.route.ts     Definisi endpoint CRUD mahasiswa (protected)
+|   |   |   +-- mahasiswa.route.ts     Definisi endpoint CRUD mahasiswa (authMiddleware + allowRoles)
 |   |   |   +-- prodi.route.ts         Definisi endpoint program studi (publik)
+|   |   +-- config/
+|   |   |   +-- env.ts                Validasi environment variable terpusat
+|   |   |   +-- database.ts           Inisialisasi MySQL connection pool
 |   |   +-- app.ts                 Registrasi middleware, CORS, static files, dan rute
 |   |   +-- server.ts              Titik masuk eksekusi server
 |   +-- uploads/
 |   |   +-- mahasiswa/             Penyimpanan fisik berkas foto profil mahasiswa
-|   +-- db_mahasiswa.sql           Skrip inisialisasi skema tabel dan data awal
+|   +-- db_mahasiswa.sql           Skrip inisialisasi skema tabel, seed data, dan akun uji
 |   +-- .env.example               Contoh konfigurasi environment variable
-|   +-- seed.ts                    Skrip eksekusi otomatis seeding database
 |   +-- package.json               Dependensi dan skrip backend
 |   +-- tsconfig.json              Konfigurasi kompilator TypeScript backend
 |
@@ -256,10 +292,15 @@ Sistem Pengelolaan Data Mahasiswa/
     |   +-- lib/
     |       +-- api.ts             API client terpusat dengan Authorization header otomatis
     |       +-- auth.ts            Utility penyimpanan token dan user di localStorage
+    |       +-- permissions.ts    Helper canCreate/canEdit/canDelete dan getRoleBadgeStyle
     +-- .env.local                 Konfigurasi URL API dan backend untuk client
     +-- .env.example               Contoh konfigurasi environment variable
     +-- package.json               Dependensi dan skrip frontend
     +-- tsconfig.json              Konfigurasi kompilator TypeScript frontend
+|
++-- docs/
+|   +-- tugas-14-mingguan-role-authorization.md   Dokumentasi dan hasil testing role authorization
++-- laporan_uji_role.md            Laporan singkat hasil uji endpoint per role
 ```
 
 ---
@@ -457,16 +498,16 @@ Middleware yang memverifikasi JWT pada setiap request ke endpoint protected:
 - Menyimpan data user ke `req.user` untuk digunakan oleh controller.
 - Menolak token kosong, invalid, atau expired dengan status 401.
 
-#### 7. Proteksi Endpoint Mahasiswa
+#### 7. Proteksi Endpoint Mahasiswa dengan allowRoles (Tugas 14)
 
-Seluruh endpoint CRUD mahasiswa dilindungi oleh `authMiddleware`:
+Seluruh endpoint CRUD mahasiswa dilindungi oleh `authMiddleware` + `allowRoles`:
 
-| Method | Endpoint | Proteksi |
-|---|---|---|
-| GET | /api/mahasiswa | authMiddleware |
-| POST | /api/mahasiswa | authMiddleware |
-| PUT | /api/mahasiswa/:id | authMiddleware |
-| DELETE | /api/mahasiswa/:id | authMiddleware |
+| Method | Endpoint | Middleware | Admin | Operator | Viewer |
+|---|---|---|---|---|---|
+| GET | /api/mahasiswa | authMiddleware + allowRoles | ✅ | ✅ | ✅ |
+| POST | /api/mahasiswa | authMiddleware + allowRoles | ✅ | ✅ | ❌ 403 |
+| PUT | /api/mahasiswa/:id | authMiddleware + allowRoles | ✅ | ✅ | ❌ 403 |
+| DELETE | /api/mahasiswa/:id | authMiddleware + allowRoles | ✅ | ❌ 403 | ❌ 403 |
 
 Endpoint yang tetap publik (tanpa authMiddleware):
 
@@ -954,6 +995,14 @@ Gunakan Postman, Insomnia, atau cURL untuk menguji setiap endpoint berikut:
 | 10 | Empty state | Pesan "Data Tidak Ditemukan" muncul jika pencarian kosong |
 | 11 | Responsif | Tampilan rapi di layar laptop (1024px+) dan mobile (375px) |
 
+#### Pengujian Role-Based UI (Tugas 14 Mingguan)
+
+| Role | Role Badge | Form Tambah | Tombol Edit | Tombol Hapus | Data Tampil | Status |
+|---|---|---|---|---|---|---|
+| Admin | 🟡 Amber | ✅ Tampil | ✅ Tampil | ✅ Tampil | ✅ | ✅ Pass |
+| Operator | 🔵 Cyan | ✅ Tampil | ✅ Tampil | ❌ Tersembunyi | ✅ | ✅ Pass |
+| Viewer | 🟣 Violet | ❌ Tersembunyi | ❌ Tersembunyi | ❌ Tersembunyi | ✅ | ✅ Pass |
+
 ### Data Dummy SQL untuk Testing
 
 Jalankan query berikut di MySQL untuk menambahkan data dummy:
@@ -1012,3 +1061,4 @@ Proyek ini dikembangkan sebagai bagian dari penugasan praktikum mata kuliah Pemr
 |---|---|---|
 | Tugas Awal | CRUD Mahasiswa, Search, Filter, Pagination, Upload Foto | Selesai |
 | Tugas 13 | Tabel Users, Register, Login, bcrypt, JWT, authMiddleware, Protected Route, Halaman Login, Halaman Register, Tombol Logout, localStorage Token | Selesai |
+| Tugas 14 Mingguan | Middleware allowRoles, Role Authorization Endpoint Mahasiswa, Akun Uji Admin/Operator/Viewer, Laporan Testing, Frontend Conditional Rendering per Role, Role Badge, Viewer Info Banner | Selesai |
