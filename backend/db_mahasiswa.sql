@@ -79,6 +79,9 @@ CREATE TABLE users (
 
 -- Seed data awal users
 INSERT INTO users (name, nama_lengkap, nim, email, prodi_id, password, role) VALUES
-('Admin', 'Administrator', '9990001', 'admin@kampus.ac.id', NULL, '$2b$10$BW3sj3iQZDe7ZrWmvKs/TuZY6pBZpIpcqiTe7Jpfh3I5MWBOFIN/S', 'admin'),
-('Operator', 'Operator Kampus', '9990002', 'operator@kampus.ac.id', NULL, '$2b$10$SnmFN0gIgTiS7Wk8.dcUXOKq7YwShguwGfEMcFDapyKRNOEijdyeu', 'operator'),
-('Viewer', 'Viewer Kampus', '9990003', 'viewer@kampus.ac.id', NULL, '$2b$10$RaEFqpB59/nlgAIUHXIRPeRoRz071.dLT2uYBj/JTQq6HiWm6NXoy', 'viewer');
+('Admin', 'Administrator', '9990001', 'admin@kampus.ac.id', NULL, '$2b$10$B1SB16wCYJynU7u5QmwXU.0lcJgZCiQjNtQqpKzzYebpzJU7vBb9K', 'admin'),
+('Operator', 'Operator Kampus', '9990002', 'operator@kampus.ac.id', NULL, '$2b$10$1yacwtZNBvK/NB3Kd7gieukhix/fgnAfeV.0HKPvuDFOgNQzAxjMO', 'operator'),
+('Viewer', 'Viewer Kampus', '9990003', 'viewer@kampus.ac.id', NULL, '$2b$10$70TRLQ7uZlhsYvE3TeHVW.AL01wdMHZtn.Zjm5CHHUi5awA1wQjNu', 'viewer')
+ON DUPLICATE KEY UPDATE 
+  password = VALUES(password),
+  role = VALUES(role);

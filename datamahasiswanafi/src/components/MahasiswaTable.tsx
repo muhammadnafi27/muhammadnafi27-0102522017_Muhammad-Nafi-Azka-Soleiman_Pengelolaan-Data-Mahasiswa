@@ -12,7 +12,8 @@ interface MahasiswaTableProps {
   totalPages: number;
   totalItems: number;
   onPageChange: (page: number) => void;
-  userRole?: string;
+  canEdit?: boolean;
+  canDelete?: boolean;
 }
 
 export default function MahasiswaTable({
@@ -24,7 +25,8 @@ export default function MahasiswaTable({
   totalPages,
   totalItems,
   onPageChange,
-  userRole
+  canEdit = false,
+  canDelete = false
 }: MahasiswaTableProps) {
   const [previewPhoto, setPreviewPhoto] = useState<{ url: string; nama: string; nim: string } | null>(null);
 
@@ -58,7 +60,9 @@ export default function MahasiswaTable({
               <th>Nama</th>
               <th>Prodi</th>
               <th>Angkatan</th>
-              <th style={{ borderTopRightRadius: '10px' }}>Aksi</th>
+              {(canEdit || canDelete) && (
+                <th style={{ borderTopRightRadius: '10px' }}>Aksi</th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -199,26 +203,28 @@ export default function MahasiswaTable({
                       {mhs.angkatan}
                     </span>
                   </td>
-                  <td>
-                    {userRole !== 'viewer' && (
-                      <button
-                        className="btn-icon-edit"
-                        onClick={() => onEdit(mhs)}
-                        title="Edit"
-                      >
-                        <Pencil size={16} />
-                      </button>
-                    )}
-                    {userRole === 'admin' && (
-                      <button
-                        className="btn-icon-delete"
-                        onClick={() => onDelete(mhs.id)}
-                        title="Hapus"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    )}
-                  </td>
+                  {(canEdit || canDelete) && (
+                    <td>
+                      {canEdit && (
+                        <button
+                          className="btn-icon-edit"
+                          onClick={() => onEdit(mhs)}
+                          title="Edit"
+                        >
+                          <Pencil size={16} />
+                        </button>
+                      )}
+                      {canDelete && (
+                        <button
+                          className="btn-icon-delete"
+                          onClick={() => onDelete(mhs.id)}
+                          title="Hapus"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </td>
+                  )}
                 </tr>
               ))
             ) : (

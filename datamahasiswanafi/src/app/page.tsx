@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { GraduationCap, Search, Filter, LogOut } from 'lucide-react';
+import { GraduationCap, Search, Filter, LogOut, ShieldCheck } from 'lucide-react';
 import DashboardCard from '../components/DashboardCard';
 import MahasiswaForm from '../components/MahasiswaForm';
 import MahasiswaTable from '../components/MahasiswaTable';
@@ -11,6 +11,7 @@ import ConfirmModal from '../components/ConfirmModal';
 import ProtectedRoute from '../components/ProtectedRoute';
 import { useAuth } from '../context/AuthContext';
 import { getMahasiswa, createMahasiswa, updateMahasiswa, deleteMahasiswa, getProdi, Mahasiswa, Prodi } from '../lib/api';
+import { canCreate, canDelete, canEdit, getRoleBadgeStyle } from '../lib/permissions';
 
 interface NotificationState {
   id: number;
@@ -26,8 +27,6 @@ export default function Home() {
   const { user, logout } = useAuth();
 
   const [isLoading, setIsLoading] = useState(true);
-
-  // Search, Filter, Pagination States
   const [search, setSearch] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [filterProdi, setFilterProdi] = useState('');
@@ -36,10 +35,11 @@ export default function Home() {
   const [totalItems, setTotalItems] = useState(0);
   const [isScrolled, setIsScrolled] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
-
-  // Stats
   const [jumlahProdi, setJumlahProdi] = useState(0);
   const [jumlahAngkatan, setJumlahAngkatan] = useState(0);
+
+  const userRole = user?.role;
+  const roleBadge = getRoleBadgeStyle(userRole);
 
   const addNotification = (message: string, type: NotificationType) => {
     const id = Date.now();
@@ -79,31 +79,18 @@ export default function Home() {
     }
   }, [search, filterProdi, currentPage]);
 
-  useEffect(() => {
-    fetchProdis();
-  }, []);
+  useEffect(() => { fetchProdis(); }, []);
 
-  // Debounced search
   useEffect(() => {
     if (search !== '') setIsSearching(true);
-    const timeoutId = setTimeout(() => {
-      fetchMahasiswaData();
-    }, 500); // 500ms debounce
+    const timeoutId = setTimeout(() => { fetchMahasiswaData(); }, 500);
     return () => clearTimeout(timeoutId);
   }, [search, filterProdi, currentPage, fetchMahasiswaData]);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, filterProdi]);
+  useEffect(() => { setCurrentPage(1); }, [search, filterProdi]);
 
   useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 30) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 30);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -125,9 +112,7 @@ export default function Home() {
     }
   };
 
-  const handleDelete = (id: number) => {
-    setDeletingId(id);
-  };
+  const handleDelete = (id: number) => { setDeletingId(id); };
 
   const confirmDelete = async () => {
     if (deletingId !== null) {
@@ -142,10 +127,6 @@ export default function Home() {
         setDeletingId(null);
       }
     }
-  };
-
-  const handleLogout = () => {
-    logout();
   };
 
   return (
@@ -180,13 +161,25 @@ export default function Home() {
                   </p>
                 </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div className="island-badge" style={{ display: 'none' }}>
-                  {/* Sembunyikan badge lama jika ingin, atau tampilkan di atas */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  padding: '0.4rem 0.85rem',
+                  backgroundColor: roleBadge.bg,
+                  border: `1px solid ${roleBadge.border}`,
+                  borderRadius: '8px',
+                  color: roleBadge.color,
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  letterSpacing: '0.03em',
+                }}>
+                  <ShieldCheck size={14} />
+                  {roleBadge.label}
                 </div>
-
-                <button 
-                  onClick={handleLogout}
+                <button
+                  onClick={logout}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -201,12 +194,8 @@ export default function Home() {
                     fontSize: '0.85rem',
                     transition: 'all 0.2s'
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.2)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)';
-                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.2)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.1)'; }}
                 >
                   <LogOut size={16} />
                   Keluar
@@ -221,29 +210,44 @@ export default function Home() {
               <p style={{ color: '#94a3b8', fontSize: '1rem', marginTop: '0.5rem' }}>Kelola data mahasiswa dan pantau analitik dengan mudah.</p>
             </div>
 
-            <DashboardCard 
-              totalMahasiswa={totalItems} 
-              jumlahProdi={jumlahProdi} 
-              jumlahAngkatan={jumlahAngkatan} 
+            {userRole === 'viewer' && (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                backgroundColor: 'rgba(167, 139, 250, 0.08)',
+                border: '1px solid rgba(167, 139, 250, 0.25)',
+                borderRadius: '12px',
+                padding: '0.9rem 1.25rem',
+                marginBottom: '1.5rem',
+              }}>
+                <ShieldCheck size={18} color="#a78bfa" style={{ flexShrink: 0 }} />
+                <p style={{ color: '#c4b5fd', fontSize: '0.9rem', margin: 0, fontWeight: 500 }}>
+                  Akun viewer hanya memiliki akses untuk melihat data mahasiswa.
+                </p>
+              </div>
+            )}
+
+            <DashboardCard
+              totalMahasiswa={totalItems}
+              jumlahProdi={jumlahProdi}
+              jumlahAngkatan={jumlahAngkatan}
             />
-            
-            {/* Search and Filter Controls */}
+
             <div className="search-filter-container">
               <div className="input-wrapper" style={{ flex: 1, minWidth: '250px' }}>
                 <Search size={18} className="input-icon" style={{ opacity: isSearching ? 0.3 : 1 }} />
                 {isSearching && (
-                  <div 
-                    style={{ 
-                      position: 'absolute', 
-                      left: '1.25rem',
-                      width: '18px', 
-                      height: '18px',
-                      border: '2px solid rgba(59, 130, 246, 0.3)',
-                      borderTopColor: '#3b82f6',
-                      borderRadius: '50%',
-                      animation: 'spin 1s linear infinite'
-                    }} 
-                  />
+                  <div style={{
+                    position: 'absolute',
+                    left: '1.25rem',
+                    width: '18px',
+                    height: '18px',
+                    border: '2px solid rgba(59, 130, 246, 0.3)',
+                    borderTopColor: '#3b82f6',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite'
+                  }} />
                 )}
                 <style dangerouslySetInnerHTML={{ __html: `@keyframes spin { to { transform: rotate(360deg); } }` }} />
                 <input
@@ -256,22 +260,17 @@ export default function Home() {
 
               <div className="input-wrapper" style={{ minWidth: '220px' }}>
                 <Filter size={18} className="input-icon" />
-                <select
-                  value={filterProdi}
-                  onChange={(e) => setFilterProdi(e.target.value)}
-                >
+                <select value={filterProdi} onChange={(e) => setFilterProdi(e.target.value)}>
                   <option value="">Semua Program Studi</option>
                   {prodis.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.nama_prodi}
-                    </option>
+                    <option key={p.id} value={p.id}>{p.nama_prodi}</option>
                   ))}
                 </select>
               </div>
             </div>
-            
+
             <div className="content-grid">
-              {user?.role !== 'viewer' && (
+              {canCreate(userRole) && (
                 <div>
                   <MahasiswaForm
                     selectedMahasiswa={editingMahasiswa}
@@ -281,7 +280,7 @@ export default function Home() {
                   />
                 </div>
               )}
-              <div style={user?.role === 'viewer' ? { gridColumn: '1 / -1' } : {}}>
+              <div style={!canCreate(userRole) ? { gridColumn: '1 / -1' } : {}}>
                 <MahasiswaTable
                   data={mahasiswas}
                   isLoading={isLoading}
@@ -291,7 +290,8 @@ export default function Home() {
                   totalPages={totalPage}
                   totalItems={totalItems}
                   onPageChange={setCurrentPage}
-                  userRole={user?.role}
+                  canEdit={canEdit(userRole)}
+                  canDelete={canDelete(userRole)}
                 />
               </div>
             </div>
