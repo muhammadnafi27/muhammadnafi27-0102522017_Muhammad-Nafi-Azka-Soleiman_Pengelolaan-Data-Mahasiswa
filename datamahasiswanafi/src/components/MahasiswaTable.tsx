@@ -12,6 +12,7 @@ interface MahasiswaTableProps {
   totalPages: number;
   totalItems: number;
   onPageChange: (page: number) => void;
+  userRole?: string;
 }
 
 export default function MahasiswaTable({
@@ -22,7 +23,8 @@ export default function MahasiswaTable({
   currentPage,
   totalPages,
   totalItems,
-  onPageChange
+  onPageChange,
+  userRole
 }: MahasiswaTableProps) {
   const [previewPhoto, setPreviewPhoto] = useState<{ url: string; nama: string; nim: string } | null>(null);
 
@@ -198,20 +200,24 @@ export default function MahasiswaTable({
                     </span>
                   </td>
                   <td>
-                    <button
-                      className="btn-icon-edit"
-                      onClick={() => onEdit(mhs)}
-                      title="Edit"
-                    >
-                      <Pencil size={16} />
-                    </button>
-                    <button
-                      className="btn-icon-delete"
-                      onClick={() => onDelete(mhs.id)}
-                      title="Hapus"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                    {userRole !== 'viewer' && (
+                      <button
+                        className="btn-icon-edit"
+                        onClick={() => onEdit(mhs)}
+                        title="Edit"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                    )}
+                    {userRole === 'admin' && (
+                      <button
+                        className="btn-icon-delete"
+                        onClick={() => onDelete(mhs.id)}
+                        title="Hapus"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))

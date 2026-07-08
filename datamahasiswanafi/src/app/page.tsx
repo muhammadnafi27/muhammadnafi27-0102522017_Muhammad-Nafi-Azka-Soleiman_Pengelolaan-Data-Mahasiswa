@@ -271,15 +271,17 @@ export default function Home() {
             </div>
             
             <div className="content-grid">
-              <div>
-                <MahasiswaForm
-                  selectedMahasiswa={editingMahasiswa}
-                  prodis={prodis}
-                  onSubmit={handleCreateOrUpdate}
-                  onCancelEdit={() => setEditingMahasiswa(null)}
-                />
-              </div>
-              <div>
+              {user?.role !== 'viewer' && (
+                <div>
+                  <MahasiswaForm
+                    selectedMahasiswa={editingMahasiswa}
+                    prodis={prodis}
+                    onSubmit={handleCreateOrUpdate}
+                    onCancelEdit={() => setEditingMahasiswa(null)}
+                  />
+                </div>
+              )}
+              <div style={user?.role === 'viewer' ? { gridColumn: '1 / -1' } : {}}>
                 <MahasiswaTable
                   data={mahasiswas}
                   isLoading={isLoading}
@@ -289,6 +291,7 @@ export default function Home() {
                   totalPages={totalPage}
                   totalItems={totalItems}
                   onPageChange={setCurrentPage}
+                  userRole={user?.role}
                 />
               </div>
             </div>
