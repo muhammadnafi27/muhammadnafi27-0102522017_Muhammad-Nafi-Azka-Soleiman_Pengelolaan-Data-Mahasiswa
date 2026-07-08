@@ -7,6 +7,7 @@ import { ENV } from './config/env';
 import prodiRoutes from './routes/prodi.route';
 import mahasiswaRoutes from './routes/mahasiswa.route';
 import authRoutes from './routes/auth.route';
+import userRoutes from './routes/user.route';
 
 const app: Application = express();
 
@@ -26,6 +27,7 @@ app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 app.use('/api/prodi', prodiRoutes);
 app.use('/api/mahasiswa', mahasiswaRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 
 // Global Error Handler
 app.use((err: any, req: Request, res: Response, next: NextFunction) => {
