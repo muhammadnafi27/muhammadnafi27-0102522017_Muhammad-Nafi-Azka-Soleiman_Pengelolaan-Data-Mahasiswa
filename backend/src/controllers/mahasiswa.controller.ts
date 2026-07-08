@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import pool from '../config/database';
 
-export const getMahasiswas = async (req: Request, res: Response) => {
+export const getMahasiswas = async (req: Request, res: Response): Promise<void> => {
   try {
     const search = req.query.search ? String(req.query.search).trim() : '';
     const prodiId = req.query.prodi_id ? String(req.query.prodi_id) : '';
@@ -58,7 +58,7 @@ export const getMahasiswas = async (req: Request, res: Response) => {
   }
 };
 
-export const createMahasiswa = async (req: any, res: Response): Promise<any> => {
+export const createMahasiswa = async (req: Request, res: Response): Promise<void> => {
   const { nim, nama, prodi_id, angkatan } = req.body;
   const foto = req.file ? req.file.filename : null;
 
@@ -67,7 +67,8 @@ export const createMahasiswa = async (req: any, res: Response): Promise<any> => 
 
   if (!nimClean || !namaClean || !prodi_id || !angkatan || isNaN(Number(angkatan))) {
     if (req.file) fs.unlinkSync(req.file.path);
-    return res.status(400).json({ message: "Semua field (nim, nama, prodi_id, angkatan) wajib diisi dengan format yang benar" });
+    res.status(400).json({ message: "Semua field (nim, nama, prodi_id, angkatan) wajib diisi dengan format yang benar" });
+    return;
   }
 
   try {
@@ -75,7 +76,8 @@ export const createMahasiswa = async (req: any, res: Response): Promise<any> => 
     const [existing] = await pool.query('SELECT * FROM mahasiswa WHERE nim = ?', [nimClean]);
     if ((existing as any[]).length > 0) {
       if (req.file) fs.unlinkSync(req.file.path);
-      return res.status(400).json({ message: "NIM tidak boleh duplikat (NIM ini sudah terdaftar)" });
+      res.status(400).json({ message: "NIM tidak boleh duplikat (NIM ini sudah terdaftar)" });
+      return;
     }
 
     const [result] = await pool.query(
@@ -100,13 +102,14 @@ export const createMahasiswa = async (req: any, res: Response): Promise<any> => 
     console.error(error);
     if (req.file) fs.unlinkSync(req.file.path);
     if (error.code === 'ER_DUP_ENTRY') {
-      return res.status(400).json({ message: "NIM tidak boleh duplikat (NIM ini sudah terdaftar)" });
+      res.status(400).json({ message: "NIM tidak boleh duplikat (NIM ini sudah terdaftar)" });
+      return;
     }
     res.status(500).json({ message: "Terjadi kesalahan pada server" });
   }
 };
 
-export const updateMahasiswa = async (req: any, res: Response): Promise<any> => {
+export const updateMahasiswa = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
   const { nim, nama, prodi_id, angkatan, removeFoto } = req.body;
   const newFoto = req.file ? req.file.filename : undefined;
@@ -116,20 +119,23 @@ export const updateMahasiswa = async (req: any, res: Response): Promise<any> => 
 
   if (!nimClean || !namaClean || !prodi_id || !angkatan || isNaN(Number(angkatan))) {
     if (req.file) fs.unlinkSync(req.file.path);
-    return res.status(400).json({ message: "Semua field (nim, nama, prodi_id, angkatan) wajib diisi dengan format yang benar" });
+    res.status(400).json({ message: "Semua field (nim, nama, prodi_id, angkatan) wajib diisi dengan format yang benar" });
+    return;
   }
 
   try {
     const [current] = await pool.query('SELECT * FROM mahasiswa WHERE id = ?', [id]);
     if ((current as any[]).length === 0) {
       if (req.file) fs.unlinkSync(req.file.path);
-      return res.status(404).json({ message: "Data mahasiswa tidak ditemukan" });
+      res.status(404).json({ message: "Data mahasiswa tidak ditemukan" });
+      return;
     }
 
     const [existing] = await pool.query('SELECT * FROM mahasiswa WHERE nim = ? AND id != ?', [nimClean, id]);
     if ((existing as any[]).length > 0) {
       if (req.file) fs.unlinkSync(req.file.path);
-      return res.status(400).json({ message: "NIM tidak boleh duplikat (NIM ini sudah digunakan mahasiswa lain)" });
+      res.status(400).json({ message: "NIM tidak boleh duplikat (NIM ini sudah digunakan mahasiswa lain)" });
+      return;
     }
 
     const oldFoto = (current as any[])[0].foto;
@@ -176,13 +182,14 @@ export const updateMahasiswa = async (req: any, res: Response): Promise<any> => 
   }
 };
 
-export const deleteMahasiswa = async (req: Request, res: Response): Promise<any> => {
+export const deleteMahasiswa = async (req: Request, res: Response): Promise<void> => {
   const { id } = req.params;
 
   try {
     const [current] = await pool.query('SELECT * FROM mahasiswa WHERE id = ?', [id]);
     if ((current as any[]).length === 0) {
-      return res.status(404).json({ message: "Data mahasiswa tidak ditemukan" });
+      res.status(404).json({ message: "Data mahasiswa tidak ditemukan" });
+      return;
     }
 
     const oldFoto = (current as any[])[0].foto;

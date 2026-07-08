@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
+import { ENV } from '../config/env';
 
 export type UserRole = "admin" | "operator" | "viewer";
 
@@ -13,9 +14,8 @@ export type AuthRequest = Request & {
   user?: AuthUser;
 };
 
-const JWT_SECRET = process.env.JWT_SECRET as string;
-
 export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction): void => {
+  const JWT_SECRET = ENV.JWT_SECRET;
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {

@@ -4,8 +4,7 @@ import jwt from 'jsonwebtoken';
 import pool from '../config/database';
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 import { AuthRequest } from '../middlewares/auth.middleware';
-
-const JWT_SECRET = process.env.JWT_SECRET as string;
+import { ENV } from '../config/env';
 
 export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -87,14 +86,14 @@ export const login = async (req: Request, res: Response, next: NextFunction): Pr
       return;
     }
 
-    const expiresIn = process.env.JWT_EXPIRES_IN || '2h';
+    const expiresIn = ENV.JWT_EXPIRES_IN;
     const token = jwt.sign(
       { 
         id: user.id, 
         email: user.email, 
         role: user.role 
       },
-      JWT_SECRET,
+      ENV.JWT_SECRET,
       { expiresIn: expiresIn as jwt.SignOptions['expiresIn'] }
     );
 

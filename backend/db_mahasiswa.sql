@@ -76,3 +76,9 @@ CREATE TABLE users (
     ON UPDATE CASCADE 
     ON DELETE SET NULL
 ) ENGINE=InnoDB;
+
+-- Seed data awal users
+INSERT INTO users (name, nama_lengkap, nim, email, prodi_id, password, role) VALUES
+('Admin', 'Administrator', '9990001', 'admin@kampus.ac.id', NULL, '$2b$10$BW3sj3iQZDe7ZrWmvKs/TuZY6pBZpIpcqiTe7Jpfh3I5MWBOFIN/S', 'admin'),
+('Operator', 'Operator Kampus', '9990002', 'operator@kampus.ac.id', NULL, '$2b$10$SnmFN0gIgTiS7Wk8.dcUXOKq7YwShguwGfEMcFDapyKRNOEijdyeu', 'operator'),
+('Viewer', 'Viewer Kampus', '9990003', 'viewer@kampus.ac.id', NULL, '$2b$10$RaEFqpB59/nlgAIUHXIRPeRoRz071.dLT2uYBj/JTQq6HiWm6NXoy', 'viewer');

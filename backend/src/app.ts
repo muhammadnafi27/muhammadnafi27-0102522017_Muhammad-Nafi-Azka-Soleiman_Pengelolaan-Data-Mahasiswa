@@ -2,6 +2,7 @@ import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import path from 'path';
 import multer from 'multer';
+import { ENV } from './config/env';
 
 import prodiRoutes from './routes/prodi.route';
 import mahasiswaRoutes from './routes/mahasiswa.route';
@@ -11,7 +12,7 @@ const app: Application = express();
 
 // Middlewares
 app.use(cors({
-  origin: process.env.FRONTEND_URL || "http://localhost:3001",
+  origin: ENV.FRONTEND_URL,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
