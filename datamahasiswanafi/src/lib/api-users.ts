@@ -21,11 +21,11 @@ export const getUsers = async (): Promise<User[]> => {
 };
 
 export const createUser = async (payload: UserFormData): Promise<void> => {
-  await fetchApi('/users', { method: 'POST', body: payload as Record<string, unknown> });
+  await fetchApi('/users', { method: 'POST', body: payload as unknown as Record<string, unknown> });
 };
 
 export const updateUser = async (id: number, payload: Omit<UserFormData, 'password'>): Promise<void> => {
-  await fetchApi(`/users/${id}`, { method: 'PUT', body: payload as Record<string, unknown> });
+  await fetchApi(`/users/${id}`, { method: 'PUT', body: payload as unknown as Record<string, unknown> });
 };
 
 export const deleteUser = async (id: number): Promise<void> => {

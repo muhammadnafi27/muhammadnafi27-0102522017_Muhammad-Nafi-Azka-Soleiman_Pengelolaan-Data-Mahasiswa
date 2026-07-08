@@ -114,7 +114,11 @@ export default function LoginPage() {
                 </div>
               </div>
 
-
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1.25rem' }}>
+                <Link href="/forgot-password" style={{ fontSize: '0.85rem', color: '#818cf8', fontWeight: 600, textDecoration: 'none' }}>
+                  Lupa Password?
+                </Link>
+              </div>
 
               <button
                 type="submit"

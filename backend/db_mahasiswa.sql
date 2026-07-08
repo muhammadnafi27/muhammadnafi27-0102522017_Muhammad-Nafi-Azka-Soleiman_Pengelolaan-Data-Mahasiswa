@@ -85,3 +85,16 @@ INSERT INTO users (name, nama_lengkap, nim, email, prodi_id, password, role) VAL
 ON DUPLICATE KEY UPDATE 
   password = VALUES(password),
   role = VALUES(role);
+
+-- 4. Tabel Password Reset Tokens (Opsional: Tugas 15 Mingguan)
+CREATE TABLE password_reset_tokens (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL,
+  token_hash VARCHAR(255) NOT NULL,
+  expires_at DATETIME NOT NULL,
+  used_at DATETIME NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_reset_token_user FOREIGN KEY (user_id) 
+    REFERENCES users(id) 
+    ON DELETE CASCADE
+) ENGINE=InnoDB;

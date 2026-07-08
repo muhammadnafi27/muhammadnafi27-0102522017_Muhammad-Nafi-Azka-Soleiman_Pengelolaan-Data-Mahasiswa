@@ -5,6 +5,8 @@ import pool from '../config/database';
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 import { AuthRequest } from '../middlewares/auth.middleware';
 import { ENV } from '../config/env';
+import crypto from 'crypto';
+import transporter from '../config/mail';
 
 export const register = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
@@ -159,4 +161,94 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
     success: true,
     message: 'Logout berhasil'
   });
+};
+
+export const forgotPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      res.status(400).json({ message: 'Email wajib diisi' });
+      return;
+    }
+
+    // Cari user berdasarkan email
+    const [users] = await pool.query<RowDataPacket[]>('SELECT id, name, email FROM users WHERE email = ?', [email]);
+    
+    if (users.length > 0) {
+      const user = users[0];
+      const rawToken = crypto.randomBytes(32).toString('hex');
+      const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+      const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 menit
+
+      await pool.query(
+        'INSERT INTO password_reset_tokens (user_id, token_hash, expires_at) VALUES (?, ?, ?)',
+        [user.id, tokenHash, expiresAt]
+      );
+
+      const appUrl = process.env.APP_URL || 'http://localhost:3001';
+      const resetLink = `${appUrl}/reset-password?token=${rawToken}`;
+
+      try {
+        await transporter.sendMail({
+          from: `"Pengelolaan Data Mahasiswa" <${process.env.MAIL_USER}>`,
+          to: user.email,
+          subject: 'Reset Password',
+          html: `
+            <h3>Halo ${user.name},</h3>
+            <p>Anda meminta untuk mereset password akun Anda.</p>
+            <p>Silakan klik link di bawah ini untuk mengatur ulang password Anda. Link ini hanya berlaku selama 30 menit.</p>
+            <p><a href="${resetLink}" target="_blank">${resetLink}</a></p>
+            <p>Jika Anda tidak meminta reset password, abaikan email ini.</p>
+            <br/>
+            <p>Terima kasih,</p>
+            <p>Tim Pengelolaan Data Mahasiswa UAI</p>
+          `
+        });
+      } catch (mailError) {
+        console.error('Gagal mengirim email SMTP:', mailError);
+        // Tetap kirim response sukses meski email gagal agar generic (atau bisa direturn 500 jika strictly required)
+      }
+    }
+
+    // Response generik (Tugas 15 Mingguan)
+    res.status(200).json({
+      message: 'Jika email terdaftar, link reset password akan dikirim ke email tersebut.'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resetPassword = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const { token, newPassword } = req.body;
+    
+    if (!token || !newPassword) {
+      res.status(400).json({ message: 'Token dan password baru wajib diisi' });
+      return;
+    }
+
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+    const [tokens] = await pool.query<RowDataPacket[]>(
+      'SELECT id, user_id FROM password_reset_tokens WHERE token_hash = ? AND used_at IS NULL AND expires_at > NOW() LIMIT 1',
+      [tokenHash]
+    );
+
+    if (tokens.length === 0) {
+      res.status(400).json({ message: 'Token reset password tidak valid atau sudah kedaluwarsa' });
+      return;
+    }
+
+    const validToken = tokens[0];
+    const saltRounds = 10;
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    await pool.query('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, validToken.user_id]);
+    await pool.query('UPDATE password_reset_tokens SET used_at = NOW() WHERE id = ?', [validToken.id]);
+
+    res.status(200).json({ message: 'Password berhasil diubah' });
+  } catch (error) {
+    next(error);
+  }
 };
