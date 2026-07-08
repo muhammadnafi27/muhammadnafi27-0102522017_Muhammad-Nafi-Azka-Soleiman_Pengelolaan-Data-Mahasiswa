@@ -5,99 +5,100 @@ import pool from '../config/database';
 import { RowDataPacket, ResultSetHeader } from 'mysql2';
 import { AuthRequest } from '../middlewares/auth.middleware';
 
-export const getUsers = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+const generateTemporaryPassword = (): string => {
+  return crypto.randomBytes(5).toString('hex');
+};
+
+export const getAllUsers = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const [users] = await pool.query<RowDataPacket[]>(
-      'SELECT id, name, nama_lengkap, nim, email, prodi_id, role, created_at, updated_at FROM users'
+    const [rows] = await pool.query<RowDataPacket[]>(
+      'SELECT id, name, email, role, created_at FROM users ORDER BY id DESC'
     );
-    res.json({ message: 'Data users berhasil diambil', data: users });
+    res.json({ message: 'Data user berhasil diambil', data: rows });
   } catch (error) {
-    next(error);
+    res.status(500).json({ message: 'Terjadi kesalahan server' });
   }
 };
 
 export const createUser = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
-    const { name, nama_lengkap, nim, email, prodi_id, password, role } = req.body;
+    const { name, email, password, role, nama_lengkap, nim } = req.body;
 
-    if (!nama_lengkap || !nim || !email || !password) {
-      res.status(400).json({ message: 'nama_lengkap, nim, email, dan password wajib diisi' });
+    if (!name || !email || !password || !role) {
+      res.status(400).json({ message: 'Nama, email, password, dan role wajib diisi' });
       return;
     }
 
-    // Check if email or nim already exists
+    if (!['admin', 'operator', 'viewer'].includes(role)) {
+      res.status(400).json({ message: 'Role tidak valid' });
+      return;
+    }
+
     const [existingUsers] = await pool.query<RowDataPacket[]>(
-      'SELECT id FROM users WHERE email = ? OR nim = ?',
-      [email, nim]
+      'SELECT id FROM users WHERE email = ?',
+      [email]
     );
 
     if (existingUsers.length > 0) {
-      res.status(409).json({ message: 'Email atau NIM sudah terdaftar' });
+      res.status(409).json({ message: 'Email sudah digunakan' });
       return;
     }
 
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-
-    const _name = name || nama_lengkap;
-    const _role = role || 'viewer';
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    const finalNamaLengkap = nama_lengkap || name;
+    const finalNim = nim || `U${Date.now()}`;
 
     const [result] = await pool.query<ResultSetHeader>(
-      'INSERT INTO users (name, nama_lengkap, nim, email, prodi_id, password, role) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [_name, nama_lengkap, nim, email, prodi_id || null, hashedPassword, _role]
+      'INSERT INTO users (name, nama_lengkap, nim, email, password, role) VALUES (?, ?, ?, ?, ?, ?)',
+      [name, finalNamaLengkap, finalNim, email, hashedPassword, role]
     );
 
-    res.status(201).json({
-      message: 'User berhasil ditambahkan',
-      data: {
-        id: result.insertId,
-        name: _name,
-        nama_lengkap,
-        email,
-        role: _role
-      }
-    });
+    res.status(201).json({ message: 'User berhasil ditambahkan' });
   } catch (error) {
-    next(error);
+    res.status(500).json({ message: 'Terjadi kesalahan server' });
   }
 };
 
 export const updateUser = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
-    const { name, nama_lengkap, email, role } = req.body;
+    const { name, email, role } = req.body;
 
-    if (!nama_lengkap || !email) {
-      res.status(400).json({ message: 'nama_lengkap dan email wajib diisi' });
+    if (!name || !email || !role) {
+      res.status(400).json({ message: 'Nama, email, dan role wajib diisi' });
       return;
     }
 
-    // Validate if the new email belongs to someone else
-    const [existingUsers] = await pool.query<RowDataPacket[]>(
-      'SELECT id FROM users WHERE email = ? AND id != ?',
-      [email, id]
-    );
-
-    if (existingUsers.length > 0) {
-      res.status(409).json({ message: 'Email sudah terdaftar pada user lain' });
+    if (!['admin', 'operator', 'viewer'].includes(role)) {
+      res.status(400).json({ message: 'Role tidak valid' });
       return;
     }
 
-    const _name = name || nama_lengkap;
-
-    const [result] = await pool.query<ResultSetHeader>(
-      'UPDATE users SET name = ?, nama_lengkap = ?, email = ?, role = ? WHERE id = ?',
-      [_name, nama_lengkap, email, role, id]
-    );
-
-    if (result.affectedRows === 0) {
+    const [existingUser] = await pool.query<RowDataPacket[]>('SELECT id FROM users WHERE id = ?', [id]);
+    if (existingUser.length === 0) {
       res.status(404).json({ message: 'User tidak ditemukan' });
       return;
     }
 
-    res.json({ message: 'Data user berhasil diperbarui' });
+    const [existingEmails] = await pool.query<RowDataPacket[]>(
+      'SELECT id FROM users WHERE email = ? AND id != ?',
+      [email, id]
+    );
+
+    if (existingEmails.length > 0) {
+      res.status(409).json({ message: 'Email sudah digunakan' });
+      return;
+    }
+
+    await pool.query<ResultSetHeader>(
+      'UPDATE users SET name = ?, email = ?, role = ? WHERE id = ?',
+      [name, email, role, id]
+    );
+
+    res.json({ message: 'User berhasil diperbarui' });
   } catch (error) {
-    next(error);
+    res.status(500).json({ message: 'Terjadi kesalahan server' });
   }
 };
 
@@ -106,9 +107,8 @@ export const deleteUser = async (req: AuthRequest, res: Response, next: NextFunc
     const { id } = req.params;
     const currentUserId = req.user?.id;
 
-    const idStr = Array.isArray(id) ? id[0] : id;
-    if (parseInt(idStr, 10) === currentUserId) {
-      res.status(403).json({ message: 'Admin tidak dapat menghapus akunnya sendiri' });
+    if (parseInt(id as string, 10) === currentUserId) {
+      res.status(400).json({ message: 'Admin tidak dapat menghapus akun sendiri' });
       return;
     }
 
@@ -121,25 +121,22 @@ export const deleteUser = async (req: AuthRequest, res: Response, next: NextFunc
 
     res.json({ message: 'User berhasil dihapus' });
   } catch (error) {
-    next(error);
+    res.status(500).json({ message: 'Terjadi kesalahan server' });
   }
 };
 
-export const resetPassword = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+export const resetPasswordByAdmin = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { id } = req.params;
 
-    // Check if user exists
     const [existingUser] = await pool.query<RowDataPacket[]>('SELECT id FROM users WHERE id = ?', [id]);
     if (existingUser.length === 0) {
       res.status(404).json({ message: 'User tidak ditemukan' });
       return;
     }
 
-    // Generate random 8 character string
-    const temporaryPassword = crypto.randomBytes(4).toString('hex'); // 8 characters
-    const saltRounds = 10;
-    const hashedPassword = await bcrypt.hash(temporaryPassword, saltRounds);
+    const temporaryPassword = generateTemporaryPassword();
+    const hashedPassword = await bcrypt.hash(temporaryPassword, 10);
 
     await pool.query<ResultSetHeader>(
       'UPDATE users SET password = ? WHERE id = ?',
@@ -147,13 +144,11 @@ export const resetPassword = async (req: AuthRequest, res: Response, next: NextF
     );
 
     res.json({ 
-      message: 'Password user berhasil di-reset', 
-      data: {
-        temporaryPassword: temporaryPassword,
-        note: 'Simpan password ini karena hanya ditampilkan satu kali.'
-      }
+      message: 'Password berhasil direset', 
+      temporaryPassword: temporaryPassword,
+      note: 'Tampilkan hanya sekali, lalu minta user mengganti password.'
     });
   } catch (error) {
-    next(error);
+    res.status(500).json({ message: 'Terjadi kesalahan server' });
   }
 };
