@@ -3,6 +3,17 @@
 
 Sistem Informasi Pengelolaan Data Mahasiswa adalah aplikasi web full-stack berbasis arsitektur client-server yang dirancang untuk mengelola data akademik mahasiswa secara terpadu. Aplikasi ini dibangun menggunakan Next.js sebagai lapisan antarmuka client, Express.js sebagai lapisan layanan API server, dan MySQL sebagai sistem manajemen basis data relasional. Sistem ini dilengkapi dengan otentikasi JWT (JSON Web Token) dan proteksi endpoint untuk keamanan data.
 
+> [!IMPORTANT]
+> **Akun Default Aplikasi (Admin, Operator, dan Viewer)**
+> 
+> Aplikasi ini dilengkapi dengan 3 akun default untuk mencoba berbagai role. Berikut adalah detail login lengkap untuk masing-masing role:
+> 
+> | Role | Email | Password | Hak Akses |
+> |---|---|---|---|
+> | **Admin** | `admin@kampus.ac.id` | `Admin12345` | Full Access (CRUD Mahasiswa & Kelola User) |
+> | **Operator** | `operator@kampus.ac.id` | `Operator12345` | Create, Read, Update Mahasiswa |
+> | **Viewer** | `viewer@kampus.ac.id` | `Viewer12345` | Read Only Mahasiswa |
+
 ---
 
 ## Daftar Isi
